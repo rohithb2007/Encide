@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-09-16T05:20:00Z",
+  "incidentId": "INCIDENT-2026-EKM-MCI-001",
+  "regionalSummary": {
+    "totalHospitalsMonitored": 8,
+    "totalAdultICUBedsAvailable": 65,
+    "totalPediatricICUBedsAvailable": 27,
+    "totalTraumaSurgicalTeamsAvailable": 23,
+    "totalUnitsOnegativePRBC": 180,
+    "totalCasualtiesTriaged": 8,
+    "activeEnRouteCasualties": 15,
+    "systemStatus": "CRITICAL_SURGE"
+  },
+  "hospitalSnapshots": [
+    {
+      "hospitalId": "H001",
+      "availableAdultICU": 8,
+      "availableTraumaTeams": 4,
+      "unitsOnegativePRBC": 38,
+      "saturationIndex": 0.75,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H002",
+      "availableAdultICU": 11,
+      "availableTraumaTeams": 3,
+      "unitsOnegativePRBC": 24,
+      "saturationIndex": 0.65,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H003",
+      "availableAdultICU": 7,
+      "availableTraumaTeams": 2,
+      "unitsOnegativePRBC": 18,
+      "saturationIndex": 0.66,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H004",
+      "availableAdultICU": 8,
+      "availableTraumaTeams": 3,
+      "unitsOnegativePRBC": 22,
+      "saturationIndex": 0.67,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H005",
+      "availableAdultICU": 5,
+      "availableTraumaTeams": 2,
+      "unitsOnegativePRBC": 20,
+      "saturationIndex": 0.75,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H006",
+      "availableAdultICU": 3,
+      "availableTraumaTeams": 2,
+      "unitsOnegativePRBC": 12,
+      "saturationIndex": 0.79,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H007",
+      "availableAdultICU": 14,
+      "availableTraumaTeams": 4,
+      "unitsOnegativePRBC": 30,
+      "saturationIndex": 0.63,
+      "divertStatus": false
+    },
+    {
+      "hospitalId": "H008",
+      "availableAdultICU": 4,
+      "availableTraumaTeams": 2,
+      "unitsOnegativePRBC": 16,
+      "saturationIndex": 0.75,
+      "divertStatus": false
+    }
+  ]
+}

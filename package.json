@@ -1,0 +1,30 @@
+{
+  "name": "mednet-ai",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Dynamic Disaster Casualty Routing and Regional Hospital Load-Balancing AI Platform",
+  "main": "dist/index.js",
+  "scripts": {
+    "validate:schemas": "tsx src/scripts/validateSchemas.ts",
+    "test": "tsx src/scripts/validateSchemas.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "fhir",
+    "triage",
+    "disaster-response",
+    "mci",
+    "load-balancing",
+    "healthcare-ai"
+  ],
+  "author": "MED-NET AI Architecture Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}

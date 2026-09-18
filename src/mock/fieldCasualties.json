@@ -1,0 +1,333 @@
+[
+  {
+    "casualtyId": "CAS-MCI-01-RED",
+    "triageTag": "red",
+    "triageTimestamp": "2026-09-16T05:12:00Z",
+    "triageLocation": {
+      "latitude": 9.9812,
+      "longitude": 76.2990,
+      "addressOrSector": "Sector 1 Blast Ground Zero - MG Road Metro Station Concourse"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 34,
+    "gender": "male",
+    "mechanism": "blast_primary",
+    "vitals": {
+      "respiratoryRate": 34,
+      "heartRate": 138,
+      "systolicBP": 82,
+      "diastolicBP": 46,
+      "spO2": 86,
+      "capillaryRefillSeconds": 4,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 2,
+        "verbalResponse": 2,
+        "motorResponse": 4,
+        "totalScore": 8
+      },
+      "temperatureCelsius": 35.8
+    },
+    "interventions": [
+      {
+        "id": "INT-01",
+        "type": "needle_thoracostomy",
+        "appliedAt": "2026-09-16T05:14:00Z",
+        "anatomicalLocation": "Right 2nd intercostal space mid-clavicular",
+        "operatorId": "MEDIC-UNIT-12",
+        "notes": "Tension pneumothorax decompressed with immediate rush of air"
+      },
+      {
+        "id": "INT-02",
+        "type": "tourniquet",
+        "appliedAt": "2026-09-16T05:13:00Z",
+        "anatomicalLocation": "Right proximal thigh",
+        "operatorId": "MEDIC-UNIT-12",
+        "notes": "CAT tourniquet placed, bleeding arrested"
+      }
+    ],
+    "burn": {
+      "totalBodySurfaceAreaPercentage": 15,
+      "inhalationInjurySuspected": true,
+      "circumferentialBurn": false,
+      "degree": "2nd"
+    },
+    "suspectedHazmatContamination": false,
+    "notes": "Blast lung, severe blunt thoracoabdominal trauma, penetrating shrapnel right leg.",
+    "estimatedSurvivalProbability": 0.62,
+    "urgencyWindowMinutes": 25
+  },
+  {
+    "casualtyId": "CAS-MCI-02-RED-PED",
+    "triageTag": "red",
+    "triageTimestamp": "2026-09-16T05:15:00Z",
+    "triageLocation": {
+      "latitude": 9.9825,
+      "longitude": 76.3010,
+      "addressOrSector": "Sector 1 Blast Ground Zero - Street Level Exit"
+    },
+    "ageCategory": "pediatric",
+    "approximateAge": 7,
+    "gender": "female",
+    "mechanism": "blast_secondary",
+    "vitals": {
+      "respiratoryRate": 44,
+      "heartRate": 162,
+      "systolicBP": 70,
+      "diastolicBP": 38,
+      "spO2": 88,
+      "capillaryRefillSeconds": 4,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 2,
+        "verbalResponse": 3,
+        "motorResponse": 4,
+        "totalScore": 9
+      },
+      "temperatureCelsius": 36.1
+    },
+    "interventions": [
+      {
+        "id": "INT-03",
+        "type": "hemostatic_packing",
+        "appliedAt": "2026-09-16T05:17:00Z",
+        "anatomicalLocation": "Left axillary region",
+        "operatorId": "MEDIC-UNIT-04",
+        "notes": "Combat gauze applied with direct compression"
+      }
+    ],
+    "burn": {
+      "totalBodySurfaceAreaPercentage": 10,
+      "inhalationInjurySuspected": false,
+      "circumferentialBurn": false,
+      "degree": "2nd"
+    },
+    "suspectedHazmatContamination": false,
+    "notes": "Pediatric acute hemorrhagic shock secondary to shrapnel laceration of axillary vessels.",
+    "estimatedSurvivalProbability": 0.74,
+    "urgencyWindowMinutes": 20
+  },
+  {
+    "casualtyId": "CAS-MCI-03-RED-BURN",
+    "triageTag": "red",
+    "triageTimestamp": "2026-09-16T05:16:00Z",
+    "triageLocation": {
+      "latitude": 9.9805,
+      "longitude": 76.2980,
+      "addressOrSector": "Sector 2 Electrical Substation Flare"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 42,
+    "gender": "male",
+    "mechanism": "thermal_burn",
+    "vitals": {
+      "respiratoryRate": 32,
+      "heartRate": 124,
+      "systolicBP": 95,
+      "diastolicBP": 60,
+      "spO2": 91,
+      "capillaryRefillSeconds": 3,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 3,
+        "verbalResponse": 4,
+        "motorResponse": 6,
+        "totalScore": 13
+      }
+    },
+    "interventions": [
+      {
+        "id": "INT-04",
+        "type": "supraglottic_airway",
+        "appliedAt": "2026-09-16T05:18:00Z",
+        "operatorId": "MEDIC-UNIT-08",
+        "notes": "I-gel placed proactively for progressive stridor and soot in oropharynx"
+      }
+    ],
+    "burn": {
+      "totalBodySurfaceAreaPercentage": 45,
+      "inhalationInjurySuspected": true,
+      "circumferentialBurn": true,
+      "degree": "3rd"
+    },
+    "suspectedHazmatContamination": false,
+    "notes": "45% TBSA full thickness burns with severe inhalation injury, requires specialized burn ICU.",
+    "estimatedSurvivalProbability": 0.55,
+    "urgencyWindowMinutes": 35
+  },
+  {
+    "casualtyId": "CAS-MCI-04-RED-HAZMAT",
+    "triageTag": "red",
+    "triageTimestamp": "2026-09-16T05:18:00Z",
+    "triageLocation": {
+      "latitude": 9.9830,
+      "longitude": 76.3025,
+      "addressOrSector": "Sector 1 Lower Platform Mechanical Room"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 29,
+    "gender": "female",
+    "mechanism": "chemical_cbrn",
+    "vitals": {
+      "respiratoryRate": 36,
+      "heartRate": 142,
+      "systolicBP": 86,
+      "diastolicBP": 50,
+      "spO2": 84,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 2,
+        "verbalResponse": 2,
+        "motorResponse": 5,
+        "totalScore": 9
+      }
+    },
+    "interventions": [
+      {
+        "id": "INT-05",
+        "type": "decontamination",
+        "appliedAt": "2026-09-16T05:20:00Z",
+        "operatorId": "HAZMAT-MED-01",
+        "notes": "Gross dry decontam performed, wet decontamination lane in progress"
+      }
+    ],
+    "suspectedHazmatContamination": true,
+    "notes": "Chemical vapor exposure with acute bronchospasm and ocular chemical burns; must go to hazmat-decon capable hospital.",
+    "estimatedSurvivalProbability": 0.68,
+    "urgencyWindowMinutes": 30
+  },
+  {
+    "casualtyId": "CAS-MCI-05-YEL",
+    "triageTag": "yellow",
+    "triageTimestamp": "2026-09-16T05:19:00Z",
+    "triageLocation": {
+      "latitude": 9.9790,
+      "longitude": 76.2970,
+      "addressOrSector": "Sector 3 Pedestrian Overpass"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 55,
+    "gender": "male",
+    "mechanism": "blunt_trauma",
+    "vitals": {
+      "respiratoryRate": 22,
+      "heartRate": 98,
+      "systolicBP": 118,
+      "diastolicBP": 74,
+      "spO2": 96,
+      "capillaryRefillSeconds": 2,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 4,
+        "verbalResponse": 5,
+        "motorResponse": 6,
+        "totalScore": 15
+      }
+    },
+    "interventions": [],
+    "suspectedHazmatContamination": false,
+    "notes": "Closed bilateral lower extremity fractures with palpable distal pulses, hemodynamically stable.",
+    "estimatedSurvivalProbability": 0.95,
+    "urgencyWindowMinutes": 120
+  },
+  {
+    "casualtyId": "CAS-MCI-06-YEL",
+    "triageTag": "yellow",
+    "triageTimestamp": "2026-09-16T05:20:00Z",
+    "triageLocation": {
+      "latitude": 9.9845,
+      "longitude": 76.3035,
+      "addressOrSector": "Sector 3 Pedestrian Plaza"
+    },
+    "ageCategory": "geriatric",
+    "approximateAge": 68,
+    "gender": "female",
+    "mechanism": "blunt_trauma",
+    "vitals": {
+      "respiratoryRate": 20,
+      "heartRate": 90,
+      "systolicBP": 130,
+      "diastolicBP": 82,
+      "spO2": 95,
+      "capillaryRefillSeconds": 2,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 4,
+        "verbalResponse": 5,
+        "motorResponse": 6,
+        "totalScore": 15
+      }
+    },
+    "interventions": [],
+    "suspectedHazmatContamination": false,
+    "notes": "Pelvic contusion, non-displaced wrist fracture, stable vitals.",
+    "estimatedSurvivalProbability": 0.96,
+    "urgencyWindowMinutes": 150
+  },
+  {
+    "casualtyId": "CAS-MCI-07-GRN",
+    "triageTag": "green",
+    "triageTimestamp": "2026-09-16T05:22:00Z",
+    "triageLocation": {
+      "latitude": 9.9810,
+      "longitude": 76.2985,
+      "addressOrSector": "Sector 4 Assembly Area"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 24,
+    "gender": "male",
+    "mechanism": "blast_secondary",
+    "vitals": {
+      "respiratoryRate": 16,
+      "heartRate": 82,
+      "systolicBP": 122,
+      "diastolicBP": 78,
+      "spO2": 99,
+      "capillaryRefillSeconds": 1,
+      "radialPulsePresent": true,
+      "gcs": {
+        "eyeResponse": 4,
+        "verbalResponse": 5,
+        "motorResponse": 6,
+        "totalScore": 15
+      }
+    },
+    "interventions": [],
+    "suspectedHazmatContamination": false,
+    "notes": "Superficial glass lacerations to forearms, ambulatory without assistance.",
+    "estimatedSurvivalProbability": 0.99,
+    "urgencyWindowMinutes": 360
+  },
+  {
+    "casualtyId": "CAS-MCI-08-BLK",
+    "triageTag": "black",
+    "triageTimestamp": "2026-09-16T05:24:00Z",
+    "triageLocation": {
+      "latitude": 9.9795,
+      "longitude": 76.3005,
+      "addressOrSector": "Sector 1 Blast Ground Zero Core"
+    },
+    "ageCategory": "adult",
+    "approximateAge": 50,
+    "gender": "unknown",
+    "mechanism": "blast_primary",
+    "vitals": {
+      "respiratoryRate": 0,
+      "heartRate": 0,
+      "systolicBP": 0,
+      "spO2": 0,
+      "radialPulsePresent": false,
+      "gcs": {
+        "eyeResponse": 1,
+        "verbalResponse": 1,
+        "motorResponse": 1,
+        "totalScore": 3
+      }
+    },
+    "interventions": [],
+    "suspectedHazmatContamination": false,
+    "notes": "Apneic, pulseless despite airway repositioning; catastrophic injuries incompatible with life under disaster conditions.",
+    "estimatedSurvivalProbability": 0.0,
+    "urgencyWindowMinutes": 0
+  }
+]

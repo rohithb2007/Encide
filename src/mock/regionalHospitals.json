@@ -1,0 +1,562 @@
+[
+  {
+    "id": "H001",
+    "fhirLocationId": "loc-amrita-kochi",
+    "name": "Amrita Institute of Medical Sciences",
+    "shortCode": "AMRITA",
+    "address": "Ponekkara, AIMS P.O, Kochi, Kerala 682041",
+    "coordinates": {
+      "latitude": 10.0326403,
+      "longitude": 76.2925041,
+      "elevationMeters": 10
+    },
+    "capabilities": {
+      "traumaLevel": "Level_I",
+      "burnCenter": true,
+      "pediatricICU": true,
+      "neurosurgeryOnSite": true,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": true,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 120,
+      "helipadOperational": true
+    },
+    "status": "surge_phase_1",
+    "capacity": {
+      "adultICU": {
+        "total": 48,
+        "occupied": 40,
+        "available": 8,
+        "surgeExpandable": 14
+      },
+      "pediatricICU": {
+        "total": 20,
+        "occupied": 15,
+        "available": 5
+      },
+      "emergencyDepartmentBeds": {
+        "total": 60,
+        "occupied": 51,
+        "available": 9
+      },
+      "negativePressureIsolation": {
+        "total": 16,
+        "occupied": 12,
+        "available": 4
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 22,
+      "activeSurgeries": 17,
+      "availableStaffedTraumaTeams": 4,
+      "averageSurgicalTurnaroundMinutes": 18,
+      "scheduledSurgeriesPended": 8
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 38,
+      "unitsOpositivePRBC": 84,
+      "unitsFreshFrozenPlasma": 45,
+      "unitsPlatelets": 22,
+      "unitsCryoprecipitate": 18,
+      "massiveTransfusionProtocolPacksAvailable": 6
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 14,
+      "dialysisMachinesAvailable": 6,
+      "ecmoCircuitsAvailable": 3,
+      "operationalCTScanners": 3,
+      "portableXRayUnits": 6
+    }
+  },
+  {
+    "id": "H002",
+    "fhirLocationId": "loc-aster-medcity",
+    "name": "Aster Medcity",
+    "shortCode": "ASTER",
+    "address": "Kuttisahib Road, Cheranallur, South Chittoor, Kochi, Kerala 682027",
+    "coordinates": {
+      "latitude": 10.0434755,
+      "longitude": 76.2774460,
+      "elevationMeters": 8
+    },
+    "capabilities": {
+      "traumaLevel": "Level_I",
+      "burnCenter": false,
+      "pediatricICU": true,
+      "neurosurgeryOnSite": true,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 90,
+      "helipadOperational": true
+    },
+    "status": "normal",
+    "capacity": {
+      "adultICU": {
+        "total": 36,
+        "occupied": 25,
+        "available": 11,
+        "surgeExpandable": 8
+      },
+      "pediatricICU": {
+        "total": 12,
+        "occupied": 8,
+        "available": 4
+      },
+      "emergencyDepartmentBeds": {
+        "total": 45,
+        "occupied": 30,
+        "available": 15
+      },
+      "negativePressureIsolation": {
+        "total": 10,
+        "occupied": 6,
+        "available": 4
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 16,
+      "activeSurgeries": 10,
+      "availableStaffedTraumaTeams": 3,
+      "averageSurgicalTurnaroundMinutes": 22,
+      "scheduledSurgeriesPended": 4
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 24,
+      "unitsOpositivePRBC": 56,
+      "unitsFreshFrozenPlasma": 30,
+      "unitsPlatelets": 14,
+      "unitsCryoprecipitate": 12,
+      "massiveTransfusionProtocolPacksAvailable": 4
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 11,
+      "dialysisMachinesAvailable": 4,
+      "ecmoCircuitsAvailable": 2,
+      "operationalCTScanners": 2,
+      "portableXRayUnits": 4
+    }
+  },
+  {
+    "id": "H003",
+    "fhirLocationId": "loc-lourdes-hospital",
+    "name": "Lourdes Hospital",
+    "shortCode": "LOURDES",
+    "address": "Pachalam, Kochi, Kerala 682012",
+    "coordinates": {
+      "latitude": 10.0067464,
+      "longitude": 76.2773992,
+      "elevationMeters": 6
+    },
+    "capabilities": {
+      "traumaLevel": "Level_II",
+      "burnCenter": false,
+      "pediatricICU": false,
+      "neurosurgeryOnSite": false,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": false,
+      "massCasualtyDecontaminationThroughputPerHour": 40,
+      "helipadOperational": false
+    },
+    "status": "normal",
+    "capacity": {
+      "adultICU": {
+        "total": 24,
+        "occupied": 17,
+        "available": 7,
+        "surgeExpandable": 6
+      },
+      "pediatricICU": {
+        "total": 6,
+        "occupied": 4,
+        "available": 2
+      },
+      "emergencyDepartmentBeds": {
+        "total": 35,
+        "occupied": 22,
+        "available": 13
+      },
+      "negativePressureIsolation": {
+        "total": 6,
+        "occupied": 4,
+        "available": 2
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 10,
+      "activeSurgeries": 6,
+      "availableStaffedTraumaTeams": 2,
+      "averageSurgicalTurnaroundMinutes": 25,
+      "scheduledSurgeriesPended": 2
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 18,
+      "unitsOpositivePRBC": 42,
+      "unitsFreshFrozenPlasma": 20,
+      "unitsPlatelets": 10,
+      "unitsCryoprecipitate": 8,
+      "massiveTransfusionProtocolPacksAvailable": 3
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 7,
+      "dialysisMachinesAvailable": 3,
+      "ecmoCircuitsAvailable": 0,
+      "operationalCTScanners": 1,
+      "portableXRayUnits": 3
+    }
+  },
+  {
+    "id": "H004",
+    "fhirLocationId": "loc-lakeshore-hospital",
+    "name": "VPS Lakeshore Hospital",
+    "shortCode": "LAKESHORE",
+    "address": "NH 66, Nettoor, Maradu, Kochi, Kerala 682040",
+    "coordinates": {
+      "latitude": 9.9189889,
+      "longitude": 76.3192057,
+      "elevationMeters": 5
+    },
+    "capabilities": {
+      "traumaLevel": "Level_I",
+      "burnCenter": false,
+      "pediatricICU": true,
+      "neurosurgeryOnSite": true,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 70,
+      "helipadOperational": true
+    },
+    "status": "normal",
+    "capacity": {
+      "adultICU": {
+        "total": 30,
+        "occupied": 22,
+        "available": 8,
+        "surgeExpandable": 8
+      },
+      "pediatricICU": {
+        "total": 10,
+        "occupied": 6,
+        "available": 4
+      },
+      "emergencyDepartmentBeds": {
+        "total": 40,
+        "occupied": 26,
+        "available": 14
+      },
+      "negativePressureIsolation": {
+        "total": 8,
+        "occupied": 5,
+        "available": 3
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 14,
+      "activeSurgeries": 8,
+      "availableStaffedTraumaTeams": 3,
+      "averageSurgicalTurnaroundMinutes": 20,
+      "scheduledSurgeriesPended": 3
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 22,
+      "unitsOpositivePRBC": 55,
+      "unitsFreshFrozenPlasma": 28,
+      "unitsPlatelets": 12,
+      "unitsCryoprecipitate": 10,
+      "massiveTransfusionProtocolPacksAvailable": 4
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 9,
+      "dialysisMachinesAvailable": 4,
+      "ecmoCircuitsAvailable": 2,
+      "operationalCTScanners": 2,
+      "portableXRayUnits": 4
+    }
+  },
+  {
+    "id": "H005",
+    "fhirLocationId": "loc-lisie-hospital",
+    "name": "Lisie Hospital",
+    "shortCode": "LISIE",
+    "address": "Kaloor, Kochi, Kerala 682018",
+    "coordinates": {
+      "latitude": 9.9880779,
+      "longitude": 76.2881663,
+      "elevationMeters": 7
+    },
+    "capabilities": {
+      "traumaLevel": "Level_II",
+      "burnCenter": false,
+      "pediatricICU": false,
+      "neurosurgeryOnSite": false,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": false,
+      "massCasualtyDecontaminationThroughputPerHour": 50,
+      "helipadOperational": false
+    },
+    "status": "surge_phase_1",
+    "capacity": {
+      "adultICU": {
+        "total": 28,
+        "occupied": 23,
+        "available": 5,
+        "surgeExpandable": 6
+      },
+      "pediatricICU": {
+        "total": 8,
+        "occupied": 6,
+        "available": 2
+      },
+      "emergencyDepartmentBeds": {
+        "total": 38,
+        "occupied": 28,
+        "available": 10
+      },
+      "negativePressureIsolation": {
+        "total": 6,
+        "occupied": 4,
+        "available": 2
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 12,
+      "activeSurgeries": 8,
+      "availableStaffedTraumaTeams": 2,
+      "averageSurgicalTurnaroundMinutes": 24,
+      "scheduledSurgeriesPended": 3
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 20,
+      "unitsOpositivePRBC": 50,
+      "unitsFreshFrozenPlasma": 25,
+      "unitsPlatelets": 10,
+      "unitsCryoprecipitate": 8,
+      "massiveTransfusionProtocolPacksAvailable": 3
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 8,
+      "dialysisMachinesAvailable": 4,
+      "ecmoCircuitsAvailable": 1,
+      "operationalCTScanners": 2,
+      "portableXRayUnits": 3
+    }
+  },
+  {
+    "id": "H006",
+    "fhirLocationId": "loc-general-hospital-ekm",
+    "name": "General Hospital Ernakulam",
+    "shortCode": "GH-EKM",
+    "address": "Hospital Road, Marine Drive, Ernakulam, Kerala 682011",
+    "coordinates": {
+      "latitude": 9.9720127,
+      "longitude": 76.2810367,
+      "elevationMeters": 4
+    },
+    "capabilities": {
+      "traumaLevel": "Level_II",
+      "burnCenter": true,
+      "pediatricICU": false,
+      "neurosurgeryOnSite": false,
+      "cardiothoracicSurgicalTeam": false,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 60,
+      "helipadOperational": false
+    },
+    "status": "surge_phase_1",
+    "capacity": {
+      "adultICU": {
+        "total": 20,
+        "occupied": 17,
+        "available": 3,
+        "surgeExpandable": 5
+      },
+      "pediatricICU": {
+        "total": 6,
+        "occupied": 5,
+        "available": 1
+      },
+      "emergencyDepartmentBeds": {
+        "total": 30,
+        "occupied": 24,
+        "available": 6
+      },
+      "negativePressureIsolation": {
+        "total": 6,
+        "occupied": 5,
+        "available": 1
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 8,
+      "activeSurgeries": 6,
+      "availableStaffedTraumaTeams": 2,
+      "averageSurgicalTurnaroundMinutes": 26,
+      "scheduledSurgeriesPended": 2
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 12,
+      "unitsOpositivePRBC": 30,
+      "unitsFreshFrozenPlasma": 16,
+      "unitsPlatelets": 8,
+      "unitsCryoprecipitate": 6,
+      "massiveTransfusionProtocolPacksAvailable": 2
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 5,
+      "dialysisMachinesAvailable": 2,
+      "ecmoCircuitsAvailable": 0,
+      "operationalCTScanners": 1,
+      "portableXRayUnits": 2
+    }
+  },
+  {
+    "id": "H007",
+    "fhirLocationId": "loc-rajagiri-hospital",
+    "name": "Rajagiri Hospital",
+    "shortCode": "RAJAGIRI",
+    "address": "Near Aluva, Chunangamvely, Edathala P.O, Aluva, Kerala 683112",
+    "coordinates": {
+      "latitude": 10.0876574,
+      "longitude": 76.3883381,
+      "elevationMeters": 14
+    },
+    "capabilities": {
+      "traumaLevel": "Level_I",
+      "burnCenter": false,
+      "pediatricICU": true,
+      "neurosurgeryOnSite": true,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": true,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 100,
+      "helipadOperational": true
+    },
+    "status": "normal",
+    "capacity": {
+      "adultICU": {
+        "total": 42,
+        "occupied": 28,
+        "available": 14,
+        "surgeExpandable": 10
+      },
+      "pediatricICU": {
+        "total": 16,
+        "occupied": 10,
+        "available": 6
+      },
+      "emergencyDepartmentBeds": {
+        "total": 50,
+        "occupied": 32,
+        "available": 18
+      },
+      "negativePressureIsolation": {
+        "total": 12,
+        "occupied": 7,
+        "available": 5
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 18,
+      "activeSurgeries": 11,
+      "availableStaffedTraumaTeams": 4,
+      "averageSurgicalTurnaroundMinutes": 20,
+      "scheduledSurgeriesPended": 4
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 30,
+      "unitsOpositivePRBC": 70,
+      "unitsFreshFrozenPlasma": 38,
+      "unitsPlatelets": 18,
+      "unitsCryoprecipitate": 14,
+      "massiveTransfusionProtocolPacksAvailable": 5
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 14,
+      "dialysisMachinesAvailable": 6,
+      "ecmoCircuitsAvailable": 2,
+      "operationalCTScanners": 2,
+      "portableXRayUnits": 5
+    }
+  },
+  {
+    "id": "H008",
+    "fhirLocationId": "loc-medical-trust-hospital",
+    "name": "Medical Trust Hospital",
+    "shortCode": "MED-TRUST",
+    "address": "MG Road, Pallimukku, Kochi, Kerala 682016",
+    "coordinates": {
+      "latitude": 9.9648215,
+      "longitude": 76.2873632,
+      "elevationMeters": 6
+    },
+    "capabilities": {
+      "traumaLevel": "Level_I",
+      "burnCenter": false,
+      "pediatricICU": false,
+      "neurosurgeryOnSite": true,
+      "cardiothoracicSurgicalTeam": true,
+      "hyperbaricChamber": false,
+      "decontaminationHazardCapable": true,
+      "massCasualtyDecontaminationThroughputPerHour": 60,
+      "helipadOperational": false
+    },
+    "status": "surge_phase_1",
+    "capacity": {
+      "adultICU": {
+        "total": 26,
+        "occupied": 22,
+        "available": 4,
+        "surgeExpandable": 6
+      },
+      "pediatricICU": {
+        "total": 8,
+        "occupied": 6,
+        "available": 2
+      },
+      "emergencyDepartmentBeds": {
+        "total": 36,
+        "occupied": 26,
+        "available": 10
+      },
+      "negativePressureIsolation": {
+        "total": 6,
+        "occupied": 4,
+        "available": 2
+      }
+    },
+    "surgical": {
+      "totalOperatingRooms": 12,
+      "activeSurgeries": 8,
+      "availableStaffedTraumaTeams": 2,
+      "averageSurgicalTurnaroundMinutes": 22,
+      "scheduledSurgeriesPended": 3
+    },
+    "bloodBank": {
+      "lastUpdated": "2026-09-16T05:00:00Z",
+      "unitsOnegativePRBC": 16,
+      "unitsOpositivePRBC": 44,
+      "unitsFreshFrozenPlasma": 24,
+      "unitsPlatelets": 10,
+      "unitsCryoprecipitate": 8,
+      "massiveTransfusionProtocolPacksAvailable": 3
+    },
+    "equipment": {
+      "mechanicalVentilatorsAvailable": 7,
+      "dialysisMachinesAvailable": 3,
+      "ecmoCircuitsAvailable": 1,
+      "operationalCTScanners": 2,
+      "portableXRayUnits": 3
+    }
+  }
+]
