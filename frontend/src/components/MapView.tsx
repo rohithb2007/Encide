@@ -301,7 +301,8 @@ export const MapView: React.FC<MapViewProps> = ({
     });
   }, [advisories, showAdvisories]);
 
-  // Render Assignment Routing Lines
+  // Render only validated road geometry returned by OSRM. Numerical distance
+  // fallbacks are informative but never become map polylines.
   useEffect(() => {
     if (!mapInstanceRef.current || !linesLayerRef.current) return;
     linesLayerRef.current.clearLayers();
@@ -312,77 +313,50 @@ export const MapView: React.FC<MapViewProps> = ({
       const hospital = hospitals.find((h) => h.id === assignment.hospital_id);
       if (!patient || !hospital) return;
 
+      const source = assignment.route_source ?? 'APPROXIMATE_NO_ROAD_GEOMETRY';
+      const geometry = assignment.route_geometry;
+      if (source !== 'OSRM_ROAD_ROUTE' || !geometry || geometry.length < 2) return;
+      if (geometry.some(({ latitude, longitude }) =>
+        !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+        latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
+      )) return;
+
+      const leafletLatLngs: L.LatLngExpression[] = geometry.map(({ latitude, longitude }) => [latitude, longitude]);
       let lineColor = '#06b6d4';
-      if (patient.severity === 'RED') lineColor = '#f43f5e';
+      if (assignment.route_replanned) lineColor = '#a78bfa';
+      else if (patient.severity === 'RED') lineColor = '#f43f5e';
       else if (patient.severity === 'YELLOW') lineColor = '#f59e0b';
       else if (patient.severity === 'GREEN') lineColor = '#10b981';
 
       const isPatientSelected = selectedPatientId === patient.id;
-      const start: [number, number] = [patient.latitude, patient.longitude];
-      const end: [number, number] = [hospital.latitude, hospital.longitude];
-      if (![...start, ...end].every(Number.isFinite)) return;
-
-      // Keep the route local to the map: casualty coordinates should not be sent
-      // to a third-party routing service. Repeated chevrons show travel direction.
-      const routeAngle = Math.atan2(-(end[0] - start[0]), end[1] - start[1]) * (180 / Math.PI);
-      const routePoint = (fraction: number): [number, number] => [
-        start[0] + (end[0] - start[0]) * fraction,
-        start[1] + (end[1] - start[1]) * fraction,
-      ];
-
-      L.polyline([start, end], {
-        color: '#020617',
-        weight: isPatientSelected ? 9 : 7,
-        opacity: 0.8,
-        interactive: false,
-      }).addTo(linesLayerRef.current!);
-
-      const polyline = L.polyline(
-        [start, end],
-        {
-          color: lineColor,
-          weight: isPatientSelected ? 4 : 3,
-          opacity: isPatientSelected ? 1.0 : 0.85,
-          dashArray: '10, 8',
-          className: 'animated-routing-line',
-        }
-      );
+      const polyline = L.polyline(leafletLatLngs, {
+        color: lineColor,
+        weight: isPatientSelected ? 5 : 3.5,
+        opacity: isPatientSelected ? 1 : 0.85,
+        dashArray: assignment.route_replanned ? '4, 5' : undefined,
+        className: 'osrm-road-route',
+      });
 
       polyline.bindTooltip(
         `<div class="font-mono text-[10px]">
           <strong>${patient.id} ➔ ${hospital.short_code}</strong><br/>
-          Score: ${(assignment.score * 100).toFixed(0)}% • ETA: ${assignment.estimated_transit_minutes} min
+          ${assignment.route_replanned ? '<strong class="text-violet-300">REPLANNED ROAD ROUTE</strong><br/>' : ''}
+          OSRM ROAD ROUTE<br/>
+          ${assignment.transit_distance_km.toFixed(1)} km • ${assignment.estimated_transit_minutes.toFixed(0)} min • Score: ${(assignment.score * 100).toFixed(0)}%
         </div>`,
         { sticky: true, className: 'bg-slate-950 text-white border border-slate-800 rounded p-1' }
       );
 
       polyline.addTo(linesLayerRef.current!);
-
-      [0.28, 0.52, 0.76].forEach((fraction) => {
-        const arrow = L.marker(routePoint(fraction), {
-          interactive: false,
-          icon: L.divIcon({
-            className: 'routing-direction-icon',
-            html: `<span style="transform: rotate(${routeAngle}deg)">➤</span>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-          }),
-        });
-        arrow.addTo(linesLayerRef.current!);
-      });
-
-      [start, end].forEach((point, index) => {
-        L.circleMarker(point, {
-          radius: index === 0 ? 4 : 5,
-          color: lineColor,
-          weight: 2,
-          fillColor: '#020617',
-          fillOpacity: 1,
-          interactive: false,
-        }).addTo(linesLayerRef.current!);
-      });
     });
   }, [assignments, hospitals, patients, selectedPatientId, showRoutes]);
+
+  const routeCounts = assignments.reduce((counts, assignment) => {
+    if (assignment.route_source === 'OSRM_ROAD_ROUTE' && (assignment.route_geometry?.length ?? 0) >= 2) counts.road += 1;
+    else if (assignment.route_source === 'ROUTE_UNAVAILABLE') counts.unavailable += 1;
+    else counts.approximate += 1;
+    return counts;
+  }, { road: 0, approximate: 0, unavailable: 0 });
 
   return (
     <div className="relative w-full h-full min-h-[480px] rounded-xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
@@ -448,6 +422,12 @@ export const MapView: React.FC<MapViewProps> = ({
           <span className="w-2 h-2 rounded-full bg-emerald-400 ml-1" /> Green (Minor)
           <span className="ml-2">🚑 Available / En Route</span>
           <span className="text-rose-400 ml-1">⛔ Road Closure</span>
+        </div>
+
+        <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-slate-800/80 pt-1 text-[9px]">
+          <span className="text-emerald-300">OSRM ROAD ROUTE: {routeCounts.road}</span>
+          <span className="text-amber-300">APPROXIMATE / NO ROAD ROUTE: {routeCounts.approximate}</span>
+          <span className="text-slate-400">ROUTE UNAVAILABLE: {routeCounts.unavailable}</span>
         </div>
 
         <div className="pt-1.5 mt-1 border-t border-slate-800/80 text-[9px] text-slate-400 flex items-center justify-between">

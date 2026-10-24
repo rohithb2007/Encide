@@ -136,6 +136,18 @@ class ScoreBreakdown(BaseModel):
     access_conditions: float = 1.0
 
 
+class RoutePoint(BaseModel):
+    """A geographic point in explicit latitude/longitude order."""
+    latitude: float
+    longitude: float
+
+
+class RouteSource(str, Enum):
+    OSRM_ROAD_ROUTE = "OSRM_ROAD_ROUTE"
+    APPROXIMATE_NO_ROAD_GEOMETRY = "APPROXIMATE_NO_ROAD_GEOMETRY"
+    ROUTE_UNAVAILABLE = "ROUTE_UNAVAILABLE"
+
+
 class AssignmentItem(BaseModel):
     patient_id: str
     hospital_id: str
@@ -150,6 +162,10 @@ class AssignmentItem(BaseModel):
     resource_constraints: list[str] = Field(default_factory=list)
     alternative_options: list[dict[str, Any]] = Field(default_factory=list)
     data_freshness: str = "CURRENT"
+    route_source: RouteSource = RouteSource.APPROXIMATE_NO_ROAD_GEOMETRY
+    route_geometry: Optional[list[RoutePoint]] = None
+    route_error: Optional[str] = None
+    route_replanned: bool = False
     hospital_response_status: str = "PENDING"
     hospital_response_at: Optional[str] = None
     hospital_response_by: Optional[str] = None

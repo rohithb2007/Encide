@@ -71,6 +71,7 @@ export function useWebSocket(handlers: WebSocketHandlers, role: string, actor: s
                 break;
               case 'ASSIGNMENT_COMPLETED':
               case 'ASSIGNMENT_APPROVED':
+              case 'REPLAN_APPROVED':
                 handlersRef.current.onAssignmentCompleted?.(data);
                 break;
               case 'REPORT_ADDED':

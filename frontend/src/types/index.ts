@@ -108,6 +108,7 @@ export interface NearbyHospital {
   estimated_transit_minutes: number;
   occupied_beds: number | null;
   route_warnings: string[];
+  route_source?: 'APPROXIMATE_NO_ROAD_GEOMETRY';
 }
 
 export interface ReplanAlternative {
@@ -213,6 +214,10 @@ export interface AssignmentItem {
     available_icu: number;
   }>;
   data_freshness?: string;
+  route_source?: 'OSRM_ROAD_ROUTE' | 'APPROXIMATE_NO_ROAD_GEOMETRY' | 'ROUTE_UNAVAILABLE';
+  route_geometry?: Array<{ latitude: number; longitude: number }> | null;
+  route_error?: string | null;
+  route_replanned?: boolean;
 }
 
 export interface SaturationAlert {

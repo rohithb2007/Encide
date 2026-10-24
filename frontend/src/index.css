@@ -70,19 +70,9 @@ body {
   }
 }
 
-.animated-routing-line {
-  stroke-dasharray: 10, 8;
-  animation: dash 1s linear infinite;
-}
-
-.routing-direction-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f8fafc;
-  font-size: 12px;
-  line-height: 1;
-  text-shadow: 0 0 3px #020617, 0 0 6px #020617;
+.osrm-road-route {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Leaflet dark map tweaks */

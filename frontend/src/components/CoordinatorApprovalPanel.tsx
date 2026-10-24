@@ -82,6 +82,16 @@ export const CoordinatorApprovalPanel: React.FC<CoordinatorApprovalPanelProps> =
                     {patient?.severity}
                   </span>
                   <span className="text-slate-400 text-[10px]">ETA: {prop.estimated_transit_minutes}m ({prop.transit_distance_km}km)</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded border ${
+                    prop.route_source === 'OSRM_ROAD_ROUTE'
+                      ? 'border-emerald-800 bg-emerald-950/50 text-emerald-300'
+                      : prop.route_source === 'ROUTE_UNAVAILABLE'
+                        ? 'border-slate-700 bg-slate-900 text-slate-400'
+                        : 'border-amber-800 bg-amber-950/50 text-amber-300'
+                  }`}>
+                    {prop.route_source === 'OSRM_ROAD_ROUTE' ? 'OSRM ROAD ROUTE' :
+                      prop.route_source === 'ROUTE_UNAVAILABLE' ? 'ROUTE UNAVAILABLE' : 'APPROXIMATE / NO ROAD ROUTE'}
+                  </span>
                   <span className="text-[9px] px-1.5 py-0.5 rounded border border-amber-800/70 bg-amber-950/50 text-amber-300">
                     {prop.approval_status || 'STATUS UNAVAILABLE'}
                   </span>

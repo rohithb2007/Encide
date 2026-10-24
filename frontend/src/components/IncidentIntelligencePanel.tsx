@@ -240,7 +240,7 @@ export const IncidentIntelligencePanel: React.FC<IncidentIntelligencePanelProps>
           <p className="text-xs text-slate-400">Nearby hospital information is unavailable. Verify the incident location and backend connection.</p>
         ) : (
           <div className="max-h-[470px] space-y-2 overflow-y-auto pr-1">
-            {sortedHospitals.map(({ hospital, distance_km, estimated_transit_minutes, occupied_beds, route_warnings }) => {
+            {sortedHospitals.map(({ hospital, distance_km, estimated_transit_minutes, occupied_beds, route_warnings, route_source }) => {
               const freeBedsValid = Number.isInteger(hospital.available_beds) &&
                 Number.isInteger(hospital.total_beds) &&
                 hospital.available_beds >= 0 &&
@@ -258,6 +258,7 @@ export const IncidentIntelligencePanel: React.FC<IncidentIntelligencePanelProps>
                       <strong className="text-xs text-white">{hospital.name}</strong>
                       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-slate-400">
                         <span>{distance_km.toFixed(1)} km · ~{estimated_transit_minutes.toFixed(0)} min estimated</span>
+                        <span className="text-amber-300">{route_source === 'APPROXIMATE_NO_ROAD_GEOMETRY' ? 'APPROXIMATE / NO ROAD ROUTE' : 'ROUTE SOURCE UNAVAILABLE'}</span>
                         <span>{occupied_beds === null ? 'Occupied: Unknown' : `Occupied: ${occupied_beds}`}</span>
                         <span>Free: {freeBedsValid ? hospital.available_beds : 'Unknown'} / {Number.isInteger(hospital.total_beds) ? hospital.total_beds : 'Unknown'} beds</span>
                         <span>ICU: {Number.isInteger(hospital.available_icu) ? `${hospital.available_icu} available` : 'Unknown'}</span>

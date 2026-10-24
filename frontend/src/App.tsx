@@ -598,7 +598,9 @@ export const App: React.FC = () => {
                 <MapView
                   hospitals={hospitals}
                   patients={patients}
-                  assignments={assignments}
+                  assignments={Array.from(new Map(
+                    [...recommendations, ...assignments].map((assignment) => [assignment.patient_id, assignment])
+                  ).values())}
                   ambulances={ambulances}
                   advisories={advisories}
                   incident={incident}

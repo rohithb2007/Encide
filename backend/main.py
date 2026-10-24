@@ -11,6 +11,7 @@ import json
 import httpx
 import uuid
 import datetime
+import asyncio
 import numpy as np
 from contextlib import asynccontextmanager
 from typing import Optional, Any
@@ -38,7 +39,9 @@ from models import (
     AlertStatus,
     TrafficAdvisory,
     AuditLogEntry,
-    ConflictAlert
+    ConflictAlert,
+    RoutePoint,
+    RouteSource,
 )
 from data_gen import (
     seed_hospitals,
@@ -61,6 +64,7 @@ from assignment_engine import (
 from predictive import calculate_saturation_alerts, time_to_saturation_minutes
 from websocket_manager import ws_manager
 from ai_extractor import extract_incident_from_text, detect_report_conflicts
+from routing import apply_road_route_result, get_osrm_road_route
 
 
 # Comprehensive State for Multi-Agency Regional Coordination
@@ -127,6 +131,41 @@ class SystemState:
 
 
 state = SystemState()
+
+
+async def enrich_assignments_with_road_routes(
+    assignments: list[AssignmentItem],
+    *,
+    replanned: bool = False,
+) -> None:
+    """Attach validated OSRM road geometry or a truthful no-geometry source."""
+    if not assignments:
+        return
+
+    semaphore = asyncio.Semaphore(6)
+    async with httpx.AsyncClient(timeout=5.0) as route_client:
+        async def route_assignment(assignment: AssignmentItem) -> None:
+            patient = state.patients.get(assignment.patient_id)
+            hospital = state.hospitals.get(assignment.hospital_id)
+            if not patient or not hospital:
+                assignment.route_source = RouteSource.ROUTE_UNAVAILABLE
+                assignment.route_geometry = None
+                assignment.route_error = "Casualty or hospital record is unavailable"
+                assignment.route_replanned = replanned
+                return
+
+            fallback_distance_km = haversine_distance_km(
+                patient.latitude, patient.longitude, hospital.latitude, hospital.longitude
+            )
+            assignment.transit_distance_km = fallback_distance_km
+            assignment.estimated_transit_minutes = estimate_transit_time_minutes(fallback_distance_km)
+            origin = RoutePoint(latitude=patient.latitude, longitude=patient.longitude)
+            destination = RoutePoint(latitude=hospital.latitude, longitude=hospital.longitude)
+            async with semaphore:
+                route = await get_osrm_road_route(origin, destination, route_client)
+            apply_road_route_result(assignment, route, replanned=replanned)
+
+        await asyncio.gather(*(route_assignment(assignment) for assignment in assignments))
 
 
 @asynccontextmanager
@@ -378,6 +417,7 @@ def get_nearby_hospitals(incident_id: str, request: Request):
             "hospital": hospital.model_dump(),
             "distance_km": distance_km,
             "estimated_transit_minutes": estimate_transit_time_minutes(distance_km + detour_km),
+            "route_source": RouteSource.APPROXIMATE_NO_ROAD_GEOMETRY.value,
             "occupied_beds": max(0, hospital.total_beds - hospital.available_beds - reserved_beds) if capacity_is_valid else None,
             "reserved_beds": reserved_beds if capacity_is_valid else None,
             "route_warnings": route_warnings,
@@ -1131,6 +1171,8 @@ async def generate_recommendations(request: Request = None):
         road_advisories=state.advisories
     )
 
+    await enrich_assignments_with_road_routes(res.assignments)
+
     state.recommendations = {item.patient_id: item for item in res.assignments}
 
     actor = "Scenario Runner" if request is None else demo_context(request, "COORDINATOR")[1]
@@ -1267,6 +1309,8 @@ async def run_assignment(request: Request = None):
         ambulances=list(state.ambulances.values()),
         road_advisories=state.advisories
     )
+
+    await enrich_assignments_with_road_routes(response.assignments)
 
     for item in response.assignments:
         patient = state.patients.get(item.patient_id)
@@ -1758,6 +1802,7 @@ async def run_scenario_step(step_id: int, request: Request = None):
         replan_res = await check_and_replan()
         proposals = replan_res.get("replan_proposals", [])
         rerouted = []
+        rerouted_assignments = []
         for prop in proposals:
             p_id = prop["patient_id"]
             best_alt = prop.get("proposed_alternative")
@@ -1766,16 +1811,23 @@ async def run_scenario_step(step_id: int, request: Request = None):
                 p = state.patients[p_id]
                 if alt_hosp:
                     p.assigned_hospital_id = alt_hosp.id
+                    active_assignment = state.assignments.get(p_id)
+                    if active_assignment:
+                        active_assignment.hospital_id = alt_hosp.id
+                        rerouted_assignments.append(active_assignment)
                     alt_hosp.available_beds = max(0, alt_hosp.available_beds - 1)
                     if p.severity == PatientSeverity.RED:
                         alt_hosp.available_icu = max(0, alt_hosp.available_icu - 1)
                     rerouted.append({"patient_id": p_id, "new_destination": alt_hosp.name})
+
+        await enrich_assignments_with_road_routes(rerouted_assignments, replanned=True)
 
         state.log_audit("Emergency Coordinator", "REPLAN_APPROVED", {"rerouted_patients": rerouted})
 
         await ws_manager.broadcast({
             "event": "REPLAN_APPROVED",
             "rerouted": rerouted,
+            "assignments": [a.model_dump() for a in state.assignments.values()],
             "hospitals": [h.model_dump() for h in state.hospitals.values()],
             "patients": [p.model_dump() for p in state.patients.values()]
         })
