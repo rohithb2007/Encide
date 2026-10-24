@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Raise the dense dashboard's smallest labels without changing its visual scale. */
+[class~="text-[8px]"] { font-size: 9px; }
+[class~="text-[9px]"] { font-size: 10px; }
+[class~="text-[10px]"] { font-size: 11px; }
+[class~="text-[11px]"] { font-size: 12px; }
+
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color-scheme: dark;
@@ -65,8 +71,18 @@ body {
 }
 
 .animated-routing-line {
-  stroke-dasharray: 6, 6;
+  stroke-dasharray: 10, 8;
   animation: dash 1s linear infinite;
+}
+
+.routing-direction-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8fafc;
+  font-size: 12px;
+  line-height: 1;
+  text-shadow: 0 0 3px #020617, 0 0 6px #020617;
 }
 
 /* Leaflet dark map tweaks */

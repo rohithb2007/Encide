@@ -1,13 +1,15 @@
 import React from 'react';
-import { Users, Clock, CheckCircle2, BedDouble } from 'lucide-react';
-import type { Patient, Hospital } from '../types';
+import { Users, Clock, CheckCircle2, BedDouble, Truck, Building2, AlertTriangle } from 'lucide-react';
+import type { Ambulance, Patient, Hospital } from '../types';
 
 interface StatsCardsProps {
   patients: Patient[];
   hospitals: Hospital[];
+  ambulances: Ambulance[];
+  warningCount: number;
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals, ambulances, warningCount }) => {
   const total = patients.length;
   const waiting = patients.filter((p) => p.status === 'WAITING').length;
   const assigned = patients.filter((p) => p.status === 'ASSIGNED').length;
@@ -20,6 +22,10 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
 
   const totalAvailBeds = hospitals.reduce((acc, h) => acc + h.available_beds, 0);
   const totalAvailICU = hospitals.reduce((acc, h) => acc + h.available_icu, 0);
+  const acceptingHospitals = hospitals.filter((hospital) =>
+    hospital.is_accepting === true && hospital.available_beds > 0
+  ).length;
+  const availableAmbulances = ambulances.filter((ambulance) => ambulance.status === 'AVAILABLE').length;
   const avgLoadPct = hospitals.length
     ? Math.round(
         (hospitals.reduce((acc, h) => acc + h.current_load, 0) / hospitals.length) * 100
@@ -27,11 +33,11 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
     : 0;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5 px-4 py-2 bg-slate-900/60 border-b border-slate-800 text-xs font-mono">
+    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2.5 px-4 py-2 bg-slate-900/60 border-b border-slate-800 text-xs font-mono">
       {/* Total Casualties */}
       <div className="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
         <div>
-          <span className="text-slate-400 text-[10px] uppercase tracking-wider block">CASUALTIES</span>
+          <span className="text-slate-400 text-xs uppercase tracking-wider block">CASUALTIES</span>
           <span className="text-xl font-bold text-white leading-none mt-1 block">{total}</span>
         </div>
         <div className="w-8 h-8 rounded bg-indigo-950/80 border border-indigo-700/40 flex items-center justify-center text-indigo-400">
@@ -39,10 +45,44 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
         </div>
       </div>
 
+      <div className="bg-slate-950/80 p-2.5 rounded-lg border border-cyan-900/30 flex items-center justify-between">
+        <div>
+          <span className="text-cyan-400 text-xs uppercase tracking-wider block">POTENTIALLY AVAILABLE</span>
+          <span className="text-xl font-bold text-cyan-200 leading-none mt-1 block">{acceptingHospitals}</span>
+        </div>
+        <Building2 className="w-4 h-4 text-cyan-400" />
+      </div>
+
+      <div className="bg-slate-950/80 p-2.5 rounded-lg border border-amber-900/30 flex items-center justify-between">
+        <div>
+          <span className="text-amber-400 text-xs uppercase tracking-wider block">RED WAITING</span>
+          <span className="text-xl font-bold text-amber-200 leading-none mt-1 block">
+            {patients.filter((patient) => patient.severity === 'RED' && patient.status === 'WAITING').length}
+          </span>
+        </div>
+        <Clock className="w-4 h-4 text-amber-400" />
+      </div>
+
+      <div className="bg-slate-950/80 p-2.5 rounded-lg border border-indigo-900/30 flex items-center justify-between">
+        <div>
+          <span className="text-indigo-400 text-xs uppercase tracking-wider block">AVAILABLE AMBULANCES</span>
+          <span className="text-xl font-bold text-indigo-200 leading-none mt-1 block">{availableAmbulances}</span>
+        </div>
+        <Truck className="w-4 h-4 text-indigo-400" />
+      </div>
+
+      <div className="bg-slate-950/80 p-2.5 rounded-lg border border-rose-900/30 flex items-center justify-between">
+        <div>
+          <span className="text-rose-400 text-xs uppercase tracking-wider block">ACTIVE WARNINGS</span>
+          <span className="text-xl font-bold text-rose-200 leading-none mt-1 block">{warningCount}</span>
+        </div>
+        <AlertTriangle className="w-4 h-4 text-rose-400" />
+      </div>
+
       {/* Waiting */}
       <div className="bg-slate-950/80 p-2.5 rounded-lg border border-amber-900/30 flex items-center justify-between">
         <div>
-          <span className="text-amber-400 text-[10px] uppercase tracking-wider block">WAITING</span>
+          <span className="text-amber-400 text-xs uppercase tracking-wider block">WAITING</span>
           <span className="text-xl font-bold text-amber-300 leading-none mt-1 block">{waiting}</span>
         </div>
         <div className="w-8 h-8 rounded bg-amber-950/80 border border-amber-700/40 flex items-center justify-center text-amber-400">
@@ -53,7 +93,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
       {/* Assigned */}
       <div className="bg-slate-950/80 p-2.5 rounded-lg border border-emerald-900/30 flex items-center justify-between">
         <div>
-          <span className="text-emerald-400 text-[10px] uppercase tracking-wider block">ASSIGNED</span>
+          <span className="text-emerald-400 text-xs uppercase tracking-wider block">ASSIGNED</span>
           <span className="text-xl font-bold text-emerald-300 leading-none mt-1 block">{assigned}</span>
         </div>
         <div className="w-8 h-8 rounded bg-emerald-950/80 border border-emerald-700/40 flex items-center justify-center text-emerald-400">
@@ -64,7 +104,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
       {/* Admitted */}
       <div className="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
         <div>
-          <span className="text-slate-400 text-[10px] uppercase tracking-wider block">ADMITTED</span>
+          <span className="text-slate-400 text-xs uppercase tracking-wider block">ADMITTED</span>
           <span className="text-xl font-bold text-slate-300 leading-none mt-1 block">{admitted}</span>
         </div>
         <div className="w-8 h-8 rounded bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400">
@@ -74,7 +114,7 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
 
       {/* Triage Severity Breakdown */}
       <div className="col-span-2 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between">
-        <span className="text-slate-400 text-[10px] uppercase tracking-wider block">
+        <span className="text-slate-400 text-xs uppercase tracking-wider block">
           START TRIAGE ACUITY
         </span>
         <div className="grid grid-cols-4 gap-1.5 mt-1 text-center font-bold">
@@ -100,10 +140,10 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ patients, hospitals }) =
       {/* Regional Capacity */}
       <div className="bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
         <div>
-          <span className="text-slate-400 text-[10px] uppercase tracking-wider block">REGIONAL BEDS</span>
+          <span className="text-slate-400 text-xs uppercase tracking-wider block">REGIONAL BEDS</span>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xl font-bold text-white leading-none">{totalAvailBeds}</span>
-            <span className="text-[10px] text-cyan-400">({totalAvailICU} ICU)</span>
+            <span className="text-xs text-cyan-400">({totalAvailICU} ICU)</span>
           </div>
         </div>
         <div className="text-right">

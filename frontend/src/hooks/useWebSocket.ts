@@ -1,9 +1,6 @@
 /**
  * MED-NET AI: Real-Time WebSocket Hook
- *
- * The WebSocket connection is kept stable across React renders.
- * Handlers are stored in a ref so changing parent state does not
- * recreate the connection.
+ * Extended with Multi-Agency Events for Reports, Ambulances, Hospitals, Alerts, and Advisories
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -13,16 +10,20 @@ interface WebSocketHandlers {
   onAssignmentCompleted?: (data: any) => void;
   onSimulationReset?: (data: any) => void;
   onInitialState?: (data: any) => void;
+  onReportAdded?: (data: any) => void;
+  onHospitalUpdated?: (data: any) => void;
+  onAmbulanceUpdated?: (data: any) => void;
+  onAlertUpdated?: (data: any) => void;
+  onAdvisoryPublished?: (data: any) => void;
+  onGeneralUpdate?: (data: any) => void;
 }
 
-export function useWebSocket(handlers: WebSocketHandlers) {
+export function useWebSocket(handlers: WebSocketHandlers, role: string, actor: string) {
   const [isConnected, setIsConnected] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Always keep the latest handlers without making the WebSocket
-  // reconnect whenever App.tsx re-renders.
   const handlersRef = useRef(handlers);
 
   useEffect(() => {
@@ -32,15 +33,13 @@ export function useWebSocket(handlers: WebSocketHandlers) {
   useEffect(() => {
     let isUnmounted = false;
 
-    const apiBase =
-      import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
-
-    const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws';
+    const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+    const query = new URLSearchParams({ role, actor });
+    const wsUrl = apiBase.replace(/^http/, 'ws') + `/ws?${query.toString()}`;
 
     const connect = () => {
       if (isUnmounted) return;
 
-      // Don't create another connection if one already exists.
       if (
         wsRef.current &&
         (wsRef.current.readyState === WebSocket.OPEN ||
@@ -67,20 +66,44 @@ export function useWebSocket(handlers: WebSocketHandlers) {
               case 'INIT_STATE':
                 handlersRef.current.onInitialState?.(data);
                 break;
-
               case 'SURGE_TRIGGERED':
                 handlersRef.current.onSurgeTriggered?.(data);
                 break;
-
               case 'ASSIGNMENT_COMPLETED':
+              case 'ASSIGNMENT_APPROVED':
                 handlersRef.current.onAssignmentCompleted?.(data);
                 break;
-
+              case 'REPORT_ADDED':
+              case 'REPORT_REVIEWED':
+                handlersRef.current.onReportAdded?.(data);
+                break;
+              case 'HOSPITAL_UPDATED':
+              case 'HOSPITAL_ALERT_ACKNOWLEDGED':
+                handlersRef.current.onHospitalUpdated?.(data);
+                break;
+              case 'HOSPITAL_REFERRAL_RESPONDED':
+                handlersRef.current.onHospitalUpdated?.(data);
+                handlersRef.current.onAmbulanceUpdated?.(data);
+                break;
+              case 'AMBULANCE_UPDATED':
+              case 'CASUALTY_IN_TRANSIT':
+              case 'HANDOVER_COMPLETED':
+              case 'DRIVER_REPORTED_ARRIVAL':
+              case 'HOSPITAL_RECEIPT_CONFIRMED':
+                handlersRef.current.onAmbulanceUpdated?.(data);
+                break;
+              case 'ALERT_UPDATED':
+                handlersRef.current.onAlertUpdated?.(data);
+                break;
+              case 'ADVISORY_PUBLISHED':
+              case 'ADVISORY_WITHDRAWN':
+                handlersRef.current.onAdvisoryPublished?.(data);
+                break;
               case 'SIMULATION_RESET':
                 handlersRef.current.onSimulationReset?.(data);
                 break;
-
               default:
+                handlersRef.current.onGeneralUpdate?.(data);
                 break;
             }
           } catch (err) {
@@ -98,58 +121,32 @@ export function useWebSocket(handlers: WebSocketHandlers) {
           if (wsRef.current === socket) {
             wsRef.current = null;
           }
-
           if (!isUnmounted) {
             setIsConnected(false);
-
-            reconnectTimeoutRef.current = setTimeout(() => {
-              connect();
-            }, 3000);
+            reconnectTimeoutRef.current = setTimeout(connect, 3000);
           }
         };
       } catch (err) {
-        console.error('WebSocket connection failed:', err);
-
+        console.error('WebSocket connection error:', err);
         if (!isUnmounted) {
-          setIsConnected(false);
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, 3000);
+          reconnectTimeoutRef.current = setTimeout(connect, 3000);
         }
       }
     };
 
-    connect();
-
-    // Keep connection alive.
-    const pingInterval = setInterval(() => {
-      const socket = wsRef.current;
-
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ action: 'PING' }));
-      }
-    }, 15000);
+    if (role.trim() && actor.trim()) connect();
 
     return () => {
       isUnmounted = true;
-
-      clearInterval(pingInterval);
-
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
       }
-
-      const socket = wsRef.current;
-
-      if (socket) {
-        socket.onclose = null;
-        socket.close();
+      if (wsRef.current) {
+        wsRef.current.close();
         wsRef.current = null;
       }
     };
-  }, []);
+  }, [role, actor]);
 
   return { isConnected };
 }

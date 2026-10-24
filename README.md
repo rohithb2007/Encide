@@ -1,8 +1,9 @@
-# MED-NET AI: Dynamic Disaster Casualty Routing & Regional Hospital Load-Balancing AI Platform
+# MED-NET AI: Intelligent Emergency Coordination Platform
 
 [![Platform](https://img.shields.io/badge/Platform-MED--NET%20AI-rose?style=for-the-badge&logo=mednet)](https://github.com/)
 [![Optimization](https://img.shields.io/badge/Algorithm-Hungarian%20(Linear%20Sum%20Assignment)-indigo?style=for-the-badge)](https://scipy.org/)
 [![Standards](https://img.shields.io/badge/Standards-HL7%20FHIR%20R4%20MCI-cyan?style=for-the-badge)](https://hl7.org/fhir/)
+[![Multi--Agency](https://img.shields.io/badge/Coordination-EMS%20%7C%20Police%20%7C%20Fire%20%7C%20Public-emerald?style=for-the-badge)](https://github.com/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 
 ---
@@ -11,77 +12,32 @@
 
 During a mass casualty incident (MCI) or regional disaster, standard emergency logistics often fail because emergency response units instinctively transport casualties to the nearest hospital. This causes **secondary collapse**: the nearest facility is rapidly overwhelmed within minutes, resulting in zero available ICU beds and critical surgery delays, while nearby regional hospitals sit with available trauma bays, surgical teams, ventilators, and blood inventory.
 
-**MED-NET AI** is a resilient emergency-response command platform that dynamically balances casualty routing across an entire regional healthcare network. Rather than relying on simple nearest-neighbor heuristics, MED-NET AI solves a multi-variable global bipartite matching problem using the **Hungarian Algorithm** (`scipy.optimize.linear_sum_assignment`), balancing:
-1. **Patient Acuity (START Triage)**: Immediate (RED), Delayed (YELLOW), Minor (GREEN), Expectant (BLACK)
-2. **Specialized Surgical Coverage**: Trauma, Neurosurgery, Cardiothoracic, Burn Care, Pediatric Surgery
-3. **Critical Resource Alignment**: Mechanical Ventilators, CT Scanners, ECMO, Universal O-neg Blood
-4. **ICU & General Bed Reserve Capacity**: Preserving critical resuscitation reserves
-5. **Predictive Capacity Saturation**: Forecasting minutes-to-saturation to avert secondary facility collapse
-6. **Travel Distance & Real-Time Transit Speeds**: Urban emergency response transit time modeling
+**MED-NET AI** is a unified emergency coordination platform connecting:
+1. **Emergency Intake & Citizens**: Ingests citizen, 112 phone operator, and field responder reports; extracts structured incident facts via AI, and detects multi-report casualty discrepancies.
+2. **Hospitals & Clinicians**: Real-time hospital portal to adjust bed/ICU capacity, toggle acceptance, view freshness indicators, and log audit history.
+3. **Ambulance Coordination**: Live fleet tracking with state transitions (`AVAILABLE`, `ASSIGNED`, `EN_ROUTE_TO_SCENE`, `ON_SCENE`, `TRANSPORTING`, `AT_HOSPITAL`), pickup verification, and hospital handover.
+4. **Emergency Authorities**: Prioritized alerts for Police, Fire & Rescue, Traffic Police, and Health Directorate with acknowledgment workflows.
+5. **Public Driver Guidance**: Privacy-safe traffic advisories with affected road closures and detours to keep emergency access routes clear (no patient PII).
+6. **Continuous Replanning**: Autonomous change-detection engine that flags disrupted assignments (e.g. facility closure or route blockage) and proposes alternatives for coordinator approval.
+7. **Unified Operational Reporting**: Comprehensive multi-agency incident reports with audit trails, casualty accounting (uncertainty range vs confirmed counts), and CSV export.
 
 ---
 
-## 🏛 System Architecture
-
-```mermaid
-flowchart TB
-    subgraph Field[Disaster Field & Triage Scene]
-        C1["Casualty Triaged (START Acuity)"]
-        Epicenter["MCI Epicenter"]
-        EMS["Emergency Response Units (EMS)"]
-    end
-
-    subgraph Backend[MED-NET AI Regional Engine (Python FastAPI)]
-        DataGen["Surge & Regional Seed Generator"]
-        SatEngine["Predictive Saturation Forecaster"]
-        Hungarian["Hungarian Optimization Engine (SciPy)"]
-        XAI["Explainability & Handoff Synthesizer"]
-        WS["WebSocket Telemetry Bus"]
-    end
-
-    subgraph HospitalNetwork[Regional Healthcare Facilities]
-        H1["Level 1 Trauma Center (High ICU/Burn)"]
-        H2["Academic Medical Center (Neurosurgery)"]
-        H3["Pediatric Trauma Pavilion"]
-        H4["Regional Level 2 Hospital"]
-        H5["Community Acute Care"]
-    end
-
-    subgraph CommandUI[Tactical Command Dashboard (React + Leaflet)]
-        Map["Tactical Incident Map"]
-        Gauges["Regional Bed Occupancy Gauges"]
-        Alerts["Predictive Saturation Badges"]
-        Handoff["EMS Patient Handoff Summary"]
-        EffMetric["Routing Efficiency Telemetry"]
-    end
-
-    Field -->|Live Casualty Stream| DataGen
-    HospitalNetwork -->|Capacity Telemetry| SatEngine
-    DataGen --> Hungarian
-    SatEngine -->|Saturation Penalty| Hungarian
-    Hungarian -->|Bipartite Assignments| XAI
-    Hungarian --> WS
-    WS --> CommandUI
-    XAI --> CommandUI
-```
-
----
-
-## ⚡ Quick Start
+## ⚡ Quick Start & Verification
 
 ### Prerequisites
 - Python 3.10+ (tested on Python 3.14)
 - Node.js 18+ & npm 9+
 
-### 1. Launch Backend
+### 1. Launch Backend API (Port 8001 / 8000)
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8001
 ```
-*Backend runs at:* `http://localhost:8000` (API documentation at `http://localhost:8000/docs`)
+*Backend runs at:* `http://localhost:8001` (Interactive Swagger docs at `http://localhost:8001/docs`)
 
-### 2. Launch Frontend
+### 2. Launch Tactical Frontend
 ```bash
 cd frontend
 npm install
@@ -89,11 +45,37 @@ npm run dev
 ```
 *Frontend runs at:* `http://localhost:5173`
 
-### 3. Verify Reference TypeScript & FHIR Schemas (Optional)
+### 3. Run All Test Suites
 ```bash
-npm test
-# Runs 50/50 test suite validating FHIR R4 disaster profiles, Zod schemas, converters, and mesh sync envelopes
+# 1. Backend Engine & Routing Algorithm Tests (4/4 Suites)
+cd backend && py test_engine.py
+
+# 2. Advanced Multi-Agency Coordination & Scenario Tests (13/13 Suites)
+cd backend && py test_coordination.py
+
+# 3. Frontend Production Build & TypeScript Typecheck
+cd frontend && npm run build
+
+# 4. HL7 FHIR R4 & Zod Schema Validation (52/52 Tests)
+cd .. && npm test
 ```
+
+---
+
+## 🎮 11-Step Interactive Demonstration Scenario (Bus Crash at South Bridge)
+
+The platform includes a 1-click step-by-step interactive scenario runner on the Command Dashboard:
+1. **Initial Bus Crash Report**: Citizen submits report of bus rollover at Ernakulam South Bridge (~18 casualties).
+2. **AI Fact Extraction**: AI extracts location, hazard labels (fuel leak, entrapment), and labels casualty count as `UNVERIFIED`.
+3. **Conflicting Phone Report**: 112 call operator reports 38 casualties and fire. Multi-report variance conflict alert triggered.
+4. **Hospital Readiness Review**: Inspect regional bed headroom, ICU reserves, and data freshness badges across 8 facilities.
+5. **Feasible Allocations**: Hungarian optimization pairs casualties with capable trauma centers and available ambulances.
+6. **Coordinator Approvals**: Coordinator reviews clinical justifications, distance ETAs, and approves proposed assignments.
+7. **Escalations & Advisories**: Authority alerts dispatched to Police/Fire and public driver advisory published for South Bridge.
+8. **Capacity Disruption Injected**: Amrita Hospital ICU reaches 0 capacity and marks status to `NOT ACCEPTING`.
+9. **Continuous Monitoring & Replanning**: Replanning engine flags affected casualties and proposes alternative capable trauma centers.
+10. **Reroute to Alternatives**: Coordinator approves rerouting to Aster Medcity and Lakeshore Hospital without chaos.
+11. **Unified Operational Report**: Generates complete incident dossier with casualty accounting, audit logs, and CSV download.
 
 ---
 

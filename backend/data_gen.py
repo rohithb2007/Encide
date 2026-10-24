@@ -203,7 +203,20 @@ def seed_hospitals() -> list[Hospital]:
                 status=status,
                 trauma_level=data["trauma_level"],
                 burn_center=data["burn_center"],
-                pediatric_capable=data["pediatric_capable"]
+                pediatric_capable=data["pediatric_capable"],
+                is_accepting=True,
+                last_updated="2026-09-16T11:00:00Z",
+                data_source="STAFF_PORTAL",
+                confirmation_status="CONFIRMED",
+                incoming_patients_count=0,
+                capacity_history=[
+                    {
+                        "timestamp": "2026-09-16T10:45:00Z",
+                        "available_beds": data["available_beds"],
+                        "available_icu": data["available_icu"],
+                        "updated_by": "Shift Nursing Officer"
+                    }
+                ]
             )
         )
     return hospitals
@@ -213,6 +226,18 @@ def seed_ambulances() -> list[Ambulance]:
     """Generates emergency response units stationed throughout the Ernakulam sector."""
     units = []
     base_lat, base_lon = 9.9816, 76.2999
+    capabilities_list = [
+        ["ALS", "Mechanical Ventilator", "Massive Transfusion Protocol"],
+        ["ALS", "Pediatric Capable", "Defibrillator"],
+        ["BLS", "Spinal Immobilization", "Oxygen"],
+        ["ALS", "ECMO Mobile", "Ventilator"],
+        ["ALS", "Bariatric Transport", "Oxygen"],
+        ["BLS", "Basic Triage Kit", "AED"],
+        ["ALS", "Trauma Surgical Kit", "Ventilator"],
+        ["ALS", "Burn Specialized", "Oxygen"],
+        ["BLS", "Rapid Transport", "AED"],
+        ["ALS", "Critical Care Transport", "Ventilator"]
+    ]
     for i in range(1, 11):
         lat = base_lat + random.uniform(-0.04, 0.04)
         lon = base_lon + random.uniform(-0.04, 0.04)
@@ -222,10 +247,106 @@ def seed_ambulances() -> list[Ambulance]:
                 unit_number=f"EMS-EKM-{i:02d}",
                 status="AVAILABLE",
                 current_latitude=round(max(9.85, min(10.15, lat)), 5),
-                current_longitude=round(max(76.15, min(76.45, lon)), 5)
+                current_longitude=round(max(76.15, min(76.45, lon)), 5),
+                capabilities=capabilities_list[i - 1],
+                transport_progress_pct=0,
+                last_status_update="2026-09-16T11:00:00Z"
             )
         )
     return units
+
+
+def seed_initial_reports() -> list[dict]:
+    """Generates initial realistic intake reports for demonstration."""
+    return [
+        {
+            "id": "REP-001",
+            "incident_id": "INC-2026-EKM-01",
+            "reported_time": "2026-09-16T10:58:12Z",
+            "source_type": "citizen",
+            "location_text": "Ernakulam South Overbridge",
+            "latitude": 9.9675,
+            "longitude": 76.2942,
+            "description": "Multi-axle passenger bus rolled over after collision with cargo truck near South Bridge. Heavy damage, approximately 15 to 20 passengers injured, passengers trapped inside. Fuel leak noticed.",
+            "estimated_casualties": 18,
+            "observed_hazards": ["Flammable Fuel / Chemical Spill", "Mass Passenger Entrapment"],
+            "road_conditions": "BLOCKED_IMPASSABLE",
+            "notes": "Passersby attempting initial assistance. Heavy traffic backing up.",
+            "verification_status": "UNVERIFIED",
+            "is_simulated_call": False,
+            "extracted_data": {
+                "incident_type": "Mass-Transit Bus Crash / Rollover",
+                "location_text": "Ernakulam South Overbridge",
+                "estimated_casualties": 18,
+                "casualty_uncertainty_note": "Reported estimate range 15-20; midpoint 18 used as unconfirmed estimate.",
+                "observed_hazards": ["Flammable Fuel / Chemical Spill", "Mass Passenger Entrapment"],
+                "road_condition": "BLOCKED_IMPASSABLE",
+                "missing_details": ["Exact count by triage category", "First responder on-scene confirmation"]
+            }
+        }
+    ]
+
+
+def seed_initial_advisories() -> list[dict]:
+    """Generates initial public traffic advisories."""
+    return [
+        {
+            "id": "ADV-001",
+            "road_name": "Ernakulam South Overbridge (Both Directions)",
+            "status": "CONFIRMED_CLOSED",
+            "hazard_description": "Major multi-vehicle accident with active emergency response and hazardous fuel spill. Preserving emergency vehicle corridor.",
+            "suggested_detour": "Use Subhash Chandra Bose Road or MG Road via Jos Junction. Divert heavy vehicles to NH-66 bypass.",
+            "start_coordinates": [9.9690, 76.2920],
+            "end_coordinates": [9.9660, 76.2965],
+            "published_by": "Emergency Operations Coordinator",
+            "published_at": "2026-09-16T11:02:00Z",
+            "is_published": True,
+            "verification_level": "CONFIRMED"
+        }
+    ]
+
+
+def seed_initial_alerts() -> list[dict]:
+    """Generates initial authority alerts."""
+    return [
+        {
+            "id": "ALT-001",
+            "incident_id": "INC-2026-EKM-01",
+            "priority": "CRITICAL",
+            "alert_type": "MAJOR_INCIDENT",
+            "title": "Mass-Casualty Incident Declared (Code Red)",
+            "description": "Major bus rollover with multiple trapped casualties at Ernakulam South Bridge. Initial casualty estimate: 15-20.",
+            "trigger": "Multi-Source Intake Verification",
+            "source": "MED-NET Central Intake",
+            "timestamp": "2026-09-16T11:01:00Z",
+            "recipient_role": "POLICE",
+            "recommended_action": "Establish 500m cordon around South Bridge, clear green corridor for ambulances along MG Road and SA Road.",
+            "status": "ACKNOWLEDGED",
+            "is_simulated_external": True,
+            "history": [
+                {"timestamp": "2026-09-16T11:01:00Z", "action": "ALERT_TRIGGERED", "actor": "MED-NET AI"},
+                {"timestamp": "2026-09-16T11:03:00Z", "action": "ACKNOWLEDGED", "actor": "Ernakulam Traffic Police HQ"}
+            ]
+        },
+        {
+            "id": "ALT-002",
+            "incident_id": "INC-2026-EKM-01",
+            "priority": "HIGH",
+            "alert_type": "CRITICAL_HAZARD",
+            "title": "Fuel Spill & Hydraulic Extrication Required",
+            "description": "Diesel fuel on roadway and passengers pinned under vehicle chassis. Fire suppression and heavy hydraulic cutters requested.",
+            "trigger": "Hazard Extraction from First Responder Intake",
+            "source": "Field Emergency Report",
+            "timestamp": "2026-09-16T11:02:30Z",
+            "recipient_role": "FIRE_RESCUE",
+            "recommended_action": "Dispatch 2x Fire Tender units and Heavy Rescue Tender from Gandhinagar Fire Station.",
+            "status": "NEW",
+            "is_simulated_external": True,
+            "history": [
+                {"timestamp": "2026-09-16T11:02:30Z", "action": "ALERT_TRIGGERED", "actor": "MED-NET AI"}
+            ]
+        }
+    ]
 
 
 def generate_patient(

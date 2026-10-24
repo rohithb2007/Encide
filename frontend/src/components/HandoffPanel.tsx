@@ -40,23 +40,23 @@ export const HandoffPanel: React.FC<HandoffPanelProps> = ({ explanation, isLoadi
               WHY THIS HOSPITAL?
             </h4>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 border border-indigo-700 text-indigo-300 font-bold">
+          <span className="text-xs px-2 py-0.5 rounded bg-indigo-950 border border-indigo-700 text-indigo-300 font-bold">
             MATCH SCORE: {(score * 100).toFixed(0)}%
           </span>
         </div>
 
         {/* Narrative Explanation */}
-        <p className="text-[11px] leading-relaxed text-slate-300 bg-slate-950/80 p-3 rounded-lg border border-slate-800/80 italic">
+        <p className="text-xs leading-relaxed text-slate-300 bg-slate-950/80 p-3 rounded-lg border border-slate-800/80 italic">
           "{explanationText}"
         </p>
 
         {/* Score Breakdown Bars */}
         <div className="mt-3 space-y-1.5">
-          <span className="text-[10px] text-slate-400 font-bold block mb-1">
+          <span className="text-xs text-slate-400 font-bold block mb-1">
             SCORE FACTOR BREAKDOWN
           </span>
           {scoreBars.map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-[10px]">
+            <div key={item.label} className="flex items-center gap-2 text-xs">
               <span className="w-28 text-slate-400 truncate">{item.label}</span>
               <div className="flex-1 bg-slate-800 rounded-full h-1.5 overflow-hidden">
                 <div
@@ -86,10 +86,10 @@ export const HandoffPanel: React.FC<HandoffPanelProps> = ({ explanation, isLoadi
           </span>
         </div>
 
-        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800 grid grid-cols-2 gap-2 text-[10px]">
+        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800 grid grid-cols-2 gap-2 text-xs">
           <div>
             <span className="text-slate-500 block">DESTINATION</span>
-            <span className="font-bold text-white text-[11px]">
+            <span className="font-bold text-white text-xs">
               {handoff_summary.destination_hospital}
             </span>
           </div>
@@ -103,7 +103,7 @@ export const HandoffPanel: React.FC<HandoffPanelProps> = ({ explanation, isLoadi
 
           <div>
             <span className="text-slate-500 block">ESTIMATED ETA</span>
-            <span className="font-bold text-amber-300 text-[11px]">
+            <span className="font-bold text-amber-300 text-xs">
               ~{handoff_summary.estimated_transit_eta_minutes} MIN ({handoff_summary.transit_distance_km} KM)
             </span>
           </div>

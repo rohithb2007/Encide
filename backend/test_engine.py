@@ -149,7 +149,7 @@ def test_fastapi_endpoints():
     from fastapi.testclient import TestClient
     from main import app
 
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-Demo-Role": "COORDINATOR", "X-Demo-Actor": "Engine Test Coordinator"})
 
     # 1. Health
     r = client.get("/health")

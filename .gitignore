@@ -29,6 +29,17 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+
+# Local secrets and credentials
+.secrets/
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
 
 # IDE & OS files
 .DS_Store
