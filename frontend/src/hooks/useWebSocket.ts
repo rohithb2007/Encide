@@ -33,9 +33,12 @@ export function useWebSocket(handlers: WebSocketHandlers, role: string, actor: s
   useEffect(() => {
     let isUnmounted = false;
 
-    const apiBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+    const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? `${window.location.origin}/api` : 'http://127.0.0.1:8001');
     const query = new URLSearchParams({ role, actor });
-    const wsUrl = apiBase.replace(/^http/, 'ws') + `/ws?${query.toString()}`;
+    const wsEndpoint = new URL(`${apiBase.replace(/\/$/, '')}/ws`, window.location.origin);
+    wsEndpoint.protocol = wsEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
+    wsEndpoint.search = query.toString();
+    const wsUrl = wsEndpoint.toString();
 
     const connect = () => {
       if (isUnmounted) return;

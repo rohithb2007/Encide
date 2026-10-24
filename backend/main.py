@@ -67,6 +67,21 @@ from ai_extractor import extract_incident_from_text, detect_report_conflicts
 from routing import apply_road_route_result, get_osrm_road_route
 
 
+class APIPrefixMiddleware:
+    """Strip Vercel's public /api routing prefix for HTTP and WebSocket routes."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        path = scope.get("path", "")
+        if scope["type"] in {"http", "websocket"} and (path == "/api" or path.startswith("/api/")):
+            scope = {**scope, "path": path[4:] or "/"}
+            if "raw_path" in scope:
+                scope["raw_path"] = scope["path"].encode("utf-8")
+        await self.app(scope, receive, send)
+
+
 # Comprehensive State for Multi-Agency Regional Coordination
 class SystemState:
     def __init__(self):
@@ -189,6 +204,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(APIPrefixMiddleware)
 
 DEMO_ROLES = {
     "COORDINATOR", "HOSPITAL", "AMBULANCE", "REPORTER",
