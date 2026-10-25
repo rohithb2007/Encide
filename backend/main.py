@@ -391,7 +391,7 @@ def get_incidents(request: Request):
 
 
 @app.get("/incidents/{incident_id}/nearby-hospitals")
-def get_nearby_hospitals(incident_id: str, request: Request):
+async def get_nearby_hospitals(incident_id: str, request: Request):
     """Returns current hospital capacity and routing estimates from the active incident location."""
     require_demo_read(request, {"COORDINATOR", "AMBULANCE"})
     if incident_id != state.incident["id"]:
@@ -439,7 +439,22 @@ def get_nearby_hospitals(incident_id: str, request: Request):
             "route_warnings": route_warnings,
         })
 
-    return sorted(nearby, key=lambda item: item["distance_km"])
+    nearby.sort(key=lambda item: item["distance_km"])
+    if nearby:
+        nearest = nearby[0]
+        hospital = nearest["hospital"]
+        route = await get_osrm_road_route(
+            RoutePoint(latitude=incident_lat, longitude=incident_lon),
+            RoutePoint(latitude=hospital["latitude"], longitude=hospital["longitude"]),
+        )
+        nearest.update({
+            "is_nearest": True,
+            "route_source": route.source.value,
+            "route_geometry": [point.model_dump() for point in route.geometry] if route.geometry else None,
+            "route_distance_km": route.distance_meters / 1000 if route.distance_meters is not None else None,
+            "route_eta_minutes": route.duration_seconds / 60 if route.duration_seconds is not None else None,
+        })
+    return nearby
 
 
 @app.post("/incidents")

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import type { Hospital, Patient, IncidentInfo, AssignmentItem, Ambulance, TrafficAdvisory } from '../types';
+import type { Hospital, Patient, IncidentInfo, Ambulance, TrafficAdvisory, NearbyHospital } from '../types';
 
 interface MapViewProps {
   hospitals: Hospital[];
   patients: Patient[];
-  assignments: AssignmentItem[];
+  nearbyHospitals: NearbyHospital[];
   ambulances?: Ambulance[];
   advisories?: TrafficAdvisory[];
   incident?: IncidentInfo;
@@ -20,7 +20,7 @@ interface MapViewProps {
 export const MapView: React.FC<MapViewProps> = ({
   hospitals,
   patients,
-  assignments,
+  nearbyHospitals,
   ambulances = [],
   advisories = [],
   incident,
@@ -301,62 +301,42 @@ export const MapView: React.FC<MapViewProps> = ({
     });
   }, [advisories, showAdvisories]);
 
-  // Render only validated road geometry returned by OSRM. Numerical distance
-  // fallbacks are informative but never become map polylines.
+  // Render the casualty region's road route to the nearest hospital only.
   useEffect(() => {
     if (!mapInstanceRef.current || !linesLayerRef.current) return;
     linesLayerRef.current.clearLayers();
     if (!showRoutes) return;
 
-    assignments.forEach((assignment) => {
-      const patient = patients.find((p) => p.id === assignment.patient_id);
-      const hospital = hospitals.find((h) => h.id === assignment.hospital_id);
-      if (!patient || !hospital) return;
-
-      const source = assignment.route_source ?? 'APPROXIMATE_NO_ROAD_GEOMETRY';
-      const geometry = assignment.route_geometry;
-      if (source !== 'OSRM_ROAD_ROUTE' || !geometry || geometry.length < 2) return;
+    const nearest = nearbyHospitals.find((nearby) => nearby.is_nearest);
+    const geometry = nearest?.route_geometry;
+    if (nearest?.route_source === 'OSRM_ROAD_ROUTE' && geometry && geometry.length >= 2) {
       if (geometry.some(({ latitude, longitude }) =>
         !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
       )) return;
 
       const leafletLatLngs: L.LatLngExpression[] = geometry.map(({ latitude, longitude }) => [latitude, longitude]);
-      let lineColor = '#06b6d4';
-      if (assignment.route_replanned) lineColor = '#a78bfa';
-      else if (patient.severity === 'RED') lineColor = '#f43f5e';
-      else if (patient.severity === 'YELLOW') lineColor = '#f59e0b';
-      else if (patient.severity === 'GREEN') lineColor = '#10b981';
-
-      const isPatientSelected = selectedPatientId === patient.id;
       const polyline = L.polyline(leafletLatLngs, {
-        color: lineColor,
-        weight: isPatientSelected ? 5 : 3.5,
-        opacity: isPatientSelected ? 1 : 0.85,
-        dashArray: assignment.route_replanned ? '4, 5' : undefined,
+        color: '#a78bfa',
+        weight: 5,
+        opacity: 0.95,
         className: 'osrm-road-route',
       });
 
       polyline.bindTooltip(
         `<div class="font-mono text-[10px]">
-          <strong>${patient.id} ➔ ${hospital.short_code}</strong><br/>
-          ${assignment.route_replanned ? '<strong class="text-violet-300">REPLANNED ROAD ROUTE</strong><br/>' : ''}
-          OSRM ROAD ROUTE<br/>
-          ${assignment.transit_distance_km.toFixed(1)} km • ${assignment.estimated_transit_minutes.toFixed(0)} min • Score: ${(assignment.score * 100).toFixed(0)}%
+          <strong>CASUALTY REGION ➔ ${nearest.hospital.short_code}</strong><br/>
+          OSRM DRIVING ROUTE<br/>
+          ${nearest.route_distance_km?.toFixed(1) ?? nearest.distance_km.toFixed(1)} km • ${nearest.route_eta_minutes?.toFixed(0) ?? nearest.estimated_transit_minutes.toFixed(0)} min
         </div>`,
         { sticky: true, className: 'bg-slate-950 text-white border border-slate-800 rounded p-1' }
       );
 
       polyline.addTo(linesLayerRef.current!);
-    });
-  }, [assignments, hospitals, patients, selectedPatientId, showRoutes]);
+    }
+  }, [nearbyHospitals, showRoutes]);
 
-  const routeCounts = assignments.reduce((counts, assignment) => {
-    if (assignment.route_source === 'OSRM_ROAD_ROUTE' && (assignment.route_geometry?.length ?? 0) >= 2) counts.road += 1;
-    else if (assignment.route_source === 'ROUTE_UNAVAILABLE') counts.unavailable += 1;
-    else counts.approximate += 1;
-    return counts;
-  }, { road: 0, approximate: 0, unavailable: 0 });
+  const nearestRouteSource = nearbyHospitals.find((nearby) => nearby.is_nearest)?.route_source;
 
   return (
     <div className="relative w-full h-full min-h-[480px] rounded-xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
@@ -425,9 +405,9 @@ export const MapView: React.FC<MapViewProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-slate-800/80 pt-1 text-[9px]">
-          <span className="text-emerald-300">OSRM ROAD ROUTE: {routeCounts.road}</span>
-          <span className="text-amber-300">APPROXIMATE / NO ROAD ROUTE: {routeCounts.approximate}</span>
-          <span className="text-slate-400">ROUTE UNAVAILABLE: {routeCounts.unavailable}</span>
+          <span className={nearestRouteSource === 'OSRM_ROAD_ROUTE' ? 'text-emerald-300' : 'text-amber-300'}>
+            CASUALTY REGION → NEAREST HOSPITAL: {nearestRouteSource === 'OSRM_ROAD_ROUTE' ? 'OSRM ROAD ROUTE' : nearestRouteSource ?? 'ROUTE UNAVAILABLE'}
+          </span>
         </div>
 
         <div className="pt-1.5 mt-1 border-t border-slate-800/80 text-[9px] text-slate-400 flex items-center justify-between">

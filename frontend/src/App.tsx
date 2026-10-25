@@ -90,7 +90,7 @@ export const App: React.FC = () => {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [ambulances, setAmbulances] = useState<Ambulance[]>([]);
-  const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [, setAssignments] = useState<AssignmentItem[]>([]);
   const [recommendations, setRecommendations] = useState<AssignmentItem[]>([]);
   const [alerts, setAlerts] = useState<SaturationAlert[]>([]);
   const [authorityAlerts, setAuthorityAlerts] = useState<AuthorityAlert[]>([]);
@@ -598,9 +598,7 @@ export const App: React.FC = () => {
                 <MapView
                   hospitals={hospitals}
                   patients={patients}
-                  assignments={Array.from(new Map(
-                    [...recommendations, ...assignments].map((assignment) => [assignment.patient_id, assignment])
-                  ).values())}
+                  nearbyHospitals={nearbyHospitals}
                   ambulances={ambulances}
                   advisories={advisories}
                   incident={incident}

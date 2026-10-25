@@ -104,11 +104,15 @@ export interface AmbulanceMission {
 
 export interface NearbyHospital {
   hospital: Hospital;
+  is_nearest?: boolean;
   distance_km: number;
   estimated_transit_minutes: number;
   occupied_beds: number | null;
   route_warnings: string[];
-  route_source?: 'APPROXIMATE_NO_ROAD_GEOMETRY';
+  route_source?: 'OSRM_ROAD_ROUTE' | 'APPROXIMATE_NO_ROAD_GEOMETRY' | 'ROUTE_UNAVAILABLE';
+  route_geometry?: Array<{ latitude: number; longitude: number }> | null;
+  route_distance_km?: number | null;
+  route_eta_minutes?: number | null;
 }
 
 export interface ReplanAlternative {
