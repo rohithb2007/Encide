@@ -81,6 +81,23 @@ body {
   outline: none;
 }
 
+.leaflet-container .leaflet-tooltip {
+  background: #0f172a;
+  border: 1px solid #475569;
+  color: #f1f5f9;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px #02061766;
+}
+
+.leaflet-container .leaflet-tooltip-top::before {
+  border-top-color: #475569;
+}
+
+.leaflet-container .leaflet-tooltip-bottom::before {
+  border-bottom-color: #475569;
+}
+
 .leaflet-bar a {
   background-color: #111827 !important;
   color: #9ca3af !important;

@@ -6,6 +6,8 @@ interface MapViewProps {
   hospitals: Hospital[];
   patients: Patient[];
   nearbyHospitals: NearbyHospital[];
+  casualtyRouteActive: boolean;
+  routingOptimized: boolean;
   ambulances?: Ambulance[];
   advisories?: TrafficAdvisory[];
   incident?: IncidentInfo;
@@ -21,18 +23,19 @@ export const MapView: React.FC<MapViewProps> = ({
   hospitals,
   patients,
   nearbyHospitals,
+  casualtyRouteActive,
+  routingOptimized,
   ambulances = [],
   advisories = [],
   incident,
   selectedHospitalId,
-  selectedPatientId,
   selectedAmbulanceId,
   onSelectHospital,
-  onSelectPatient,
   onSelectAmbulance,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const focusedRouteRef = useRef<string | null>(null);
 
   const hospitalLayerRef = useRef<L.LayerGroup | null>(null);
   const patientLayerRef = useRef<L.LayerGroup | null>(null);
@@ -44,7 +47,7 @@ export const MapView: React.FC<MapViewProps> = ({
   // Layer Visibility Controls
   const [showHospitals, setShowHospitals] = useState<boolean>(true);
   const [showPatients, setShowPatients] = useState<boolean>(true);
-  const [showAmbulances, setShowAmbulances] = useState<boolean>(true);
+  const [showAmbulances, setShowAmbulances] = useState<boolean>(false);
   const [showRoutes, setShowRoutes] = useState<boolean>(true);
   const [showAdvisories, setShowAdvisories] = useState<boolean>(true);
 
@@ -63,6 +66,8 @@ export const MapView: React.FC<MapViewProps> = ({
       zoomControl: true,
       attributionControl: false,
     });
+    const casualtyRoutePane = map.createPane('casualtyRoutePane');
+    casualtyRoutePane.style.zIndex = '450';
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -77,28 +82,33 @@ export const MapView: React.FC<MapViewProps> = ({
     incidentLayerRef.current = L.layerGroup().addTo(map);
 
     mapInstanceRef.current = map;
+    focusedRouteRef.current = null;
+    const resizeObserver = new ResizeObserver(() => map.invalidateSize({ pan: false }));
+    resizeObserver.observe(mapContainerRef.current);
 
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [hospitals, incident]);
+  }, []);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
+    if (routingOptimized) return;
     const incidentLat = incident?.latitude;
     const incidentLon = incident?.longitude;
     if (incidentLat !== undefined && incidentLon !== undefined &&
         Number.isFinite(incidentLat) && Number.isFinite(incidentLon)) {
-      map.setView([incidentLat, incidentLon], 11);
+      map.setView([incidentLat, incidentLon], 13);
     } else if (hospitals.length > 0) {
       map.fitBounds(
         L.latLngBounds(hospitals.map((hospital) => L.latLng(hospital.latitude, hospital.longitude))),
         { padding: [24, 24] }
       );
     }
-  }, [hospitals, incident]);
+  }, [incident?.latitude, incident?.longitude, routingOptimized]);
 
   // Render Incident Epicenter
   useEffect(() => {
@@ -129,11 +139,8 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const marker = L.marker([epicLat, epicLon], { icon: incidentIcon });
     marker.bindTooltip(
-      `<div class="font-mono text-xs font-bold text-rose-300">
-        🚨 ${incident?.name ?? 'DISASTER EPICENTER'}
-        <div class="text-[10px] text-slate-300 font-normal">Active Mass Casualty Incident Zone</div>
-      </div>`,
-      { permanent: false, direction: 'top', className: 'bg-slate-950 text-white border border-rose-500/40 rounded p-1.5' }
+      '<div class="font-mono text-[10px] font-bold text-rose-300">🚨 MAJOR CASUALTY INCIDENT</div>',
+      { permanent: true, direction: 'bottom', offset: [0, 20], className: 'bg-slate-950 text-white border border-rose-500/40 rounded p-1' }
     );
 
     marker.addTo(incidentLayerRef.current);
@@ -148,29 +155,26 @@ export const MapView: React.FC<MapViewProps> = ({
     hospitals.forEach((h) => {
       if (!Number.isFinite(h.latitude) || !Number.isFinite(h.longitude)) return;
       const isSelected = selectedHospitalId === h.id;
-      let loadColor = '#10b981';
-      if (h.current_load >= 0.85) loadColor = '#f43f5e';
-      else if (h.current_load >= 0.65) loadColor = '#f59e0b';
-
       const isAccepting = h.is_accepting !== false;
-      const ringColor = !isAccepting ? '#64748b' : isSelected ? '#38bdf8' : loadColor;
+      const isFull = !isAccepting || h.available_beds <= 0;
+      let loadColor = '#10b981';
+      if (isFull) loadColor = '#f43f5e';
+      else if (h.total_beds > 0 && (h.total_beds - h.available_beds) / h.total_beds >= 0.65) loadColor = '#facc15';
+      const capacityLabel = isFull ? (h.available_beds <= 0 ? 'FULL' : 'NOT ACCEPTING') : loadColor === '#facc15' ? 'PARTIALLY FILLED' : 'VACANCY';
+      const ringColor = isSelected ? '#38bdf8' : '#fff';
 
       const html = `
         <div class="relative flex items-center justify-center group cursor-pointer">
           ${isSelected ? `<div class="absolute w-11 h-11 rounded-full animate-ping opacity-60" style="background-color: ${ringColor}"></div>` : ''}
-          <div class="w-8 h-8 rounded-lg shadow-xl flex items-center justify-center text-white font-bold text-xs border-2"
-               style="background-color: ${!isAccepting ? '#334155' : '#0f172a'}; border-color: ${ringColor};">
-            <span class="text-[11px] font-mono">${h.short_code.slice(0, 3)}</span>
-          </div>
-          <div class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold text-slate-950 shadow"
-               style="background-color: ${loadColor}">
-            ${h.available_beds}
+          <div class="rounded-lg shadow-xl text-center font-bold border-2" style="background-color:${loadColor};color:#020617;border-color:${ringColor};min-width:76px;padding:5px 8px;">
+            <div style="font-size:12px;line-height:16px;">✚ ${h.short_code}</div>
+            <div style="font-size:10px;line-height:14px;">${isFull ? capacityLabel : `${h.available_beds} beds free`}</div>
           </div>
         </div>
       `;
 
-      const icon = L.divIcon({ html, className: 'custom-hosp-icon', iconSize: [36, 36], iconAnchor: [18, 18] });
-      const marker = L.marker([h.latitude, h.longitude], { icon });
+      const icon = L.divIcon({ html, className: 'custom-hosp-icon', iconSize: [84, 48], iconAnchor: [42, 24] });
+      const marker = L.marker([h.latitude, h.longitude], { icon, zIndexOffset: isSelected ? 1200 : 200 });
 
       marker.on('click', () => onSelectHospital(h));
       marker.bindTooltip(
@@ -179,7 +183,7 @@ export const MapView: React.FC<MapViewProps> = ({
           <div class="text-[10px] text-slate-300">
             Available Beds: <strong class="text-emerald-400">${h.available_beds}</strong> / ${h.total_beds} •
             ICU: <strong class="text-cyan-400">${h.available_icu}</strong> •
-            Status: <span style="color: ${ringColor}">${!isAccepting ? 'CLOSED / FULL' : h.status}</span>
+            Status: <span style="color: ${loadColor}">${capacityLabel}</span>
           </div>
           <div class="text-[9px] text-slate-400">Freshness: ${h.confirmation_status || 'CONFIRMED'}</div>
         </div>`,
@@ -190,44 +194,47 @@ export const MapView: React.FC<MapViewProps> = ({
     });
   }, [hospitals, selectedHospitalId, showHospitals, onSelectHospital]);
 
-  // Render Casualties (Patients)
+  // Scene groups are count summaries at the accident region, not individual GPS pins.
   useEffect(() => {
     if (!mapInstanceRef.current || !patientLayerRef.current) return;
     patientLayerRef.current.clearLayers();
-    if (!showPatients) return;
+    const lat = incident?.latitude;
+    const lon = incident?.longitude;
+    if (!showPatients || !casualtyRouteActive || lat === undefined || lon === undefined ||
+        !Number.isFinite(lat) || !Number.isFinite(lon)) return;
 
-    patients.forEach((p) => {
-      if (!Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) return;
-      const isSelected = selectedPatientId === p.id;
-      let dotColor = '#10b981';
-      if (p.severity === 'RED') dotColor = '#f43f5e';
-      else if (p.severity === 'YELLOW') dotColor = '#f59e0b';
-      else if (p.severity === 'BLACK') dotColor = '#475569';
+    const sceneCasualties = patients.filter((p) => p.incident_id === incident?.id && (p.status === 'WAITING' || p.status === 'ASSIGNED'));
+    const red = sceneCasualties.filter((p) => p.severity === 'RED').length;
+    const yellow = sceneCasualties.filter((p) => p.severity === 'YELLOW').length;
+    const minor = sceneCasualties.filter((p) => p.severity === 'GREEN').length;
+    const expectant = sceneCasualties.filter((p) => p.severity === 'BLACK').length;
 
-      const html = `
-        <div class="relative flex items-center justify-center cursor-pointer">
-          ${isSelected ? `<div class="absolute w-6 h-6 rounded-full animate-ping opacity-75" style="background-color: ${dotColor}"></div>` : ''}
-          <div class="w-4 h-4 rounded-full border-2 border-slate-950 shadow-md flex items-center justify-center"
-               style="background-color: ${dotColor}; ${p.severity === 'RED' ? 'box-shadow: 0 0 8px rgba(244, 63, 94, 0.8);' : ''}">
-          </div>
-        </div>
-      `;
+    L.circle([lat, lon], {
+      radius: 200, color: '#f43f5e', weight: 2, dashArray: '6 5',
+      fillColor: '#f43f5e', fillOpacity: 0.09, interactive: false,
+    }).addTo(patientLayerRef.current);
 
-      const icon = L.divIcon({ html, className: 'custom-patient-icon', iconSize: [16, 16], iconAnchor: [8, 8] });
-      const marker = L.marker([p.latitude, p.longitude], { icon });
-
-      marker.on('click', () => onSelectPatient(p));
-      marker.bindTooltip(
-        `<div class="font-mono text-xs">
-          <strong>${p.id}</strong> [Triage: <span style="color: ${dotColor}">${p.severity}</span>]
-          <div class="text-[10px] text-slate-300">Status: ${p.status} • Need: ${p.required_specialist}</div>
+    const groups = [
+      { label: 'MAJOR / URGENT', count: red + yellow, color: '#f43f5e', lat: lat + 0.001, lon, anchor: [112, 24] as L.PointTuple,
+        detail: `${red} immediate (red), ${yellow} delayed (yellow)` },
+      { label: 'MINOR', count: minor, color: '#10b981', lat: lat + 0.001, lon, anchor: [-4, 24] as L.PointTuple,
+        detail: 'Green triage cases at the scene' },
+      { label: 'EXPECTANT', count: expectant, color: '#64748b', lat: lat - 0.0012, lon, anchor: [54, 24] as L.PointTuple,
+        detail: 'Black triage cases recorded at the scene' },
+    ];
+    groups.filter((group) => group.count > 0).forEach((group) => {
+      const icon = L.divIcon({
+        html: `<div style="background:#0f172a;color:#fff;border:2px solid ${group.color};border-radius:9px;padding:4px 6px;text-align:center;box-shadow:0 3px 12px #02061780;">
+          <strong style="display:block;font-size:17px;line-height:20px;color:${group.color};">${group.count}</strong>
+          <span style="font-size:10px;font-weight:700;white-space:nowrap;">${group.label}</span>
         </div>`,
-        { direction: 'top', className: 'bg-slate-950 text-white border border-slate-800 rounded p-1.5 shadow-xl' }
-      );
-
-      marker.addTo(patientLayerRef.current!);
+        className: 'scene-casualty-group', iconSize: [108, 48], iconAnchor: group.anchor,
+      });
+      L.marker([group.lat, group.lon], { icon, zIndexOffset: 800 })
+        .bindTooltip(`${group.detail}. Scene group count; not individual GPS positions.`, { direction: 'top' })
+        .addTo(patientLayerRef.current!);
     });
-  }, [patients, selectedPatientId, showPatients, onSelectPatient]);
+  }, [patients, incident?.id, incident?.latitude, incident?.longitude, showPatients, casualtyRouteActive]);
 
   // Render Ambulances Layer
   useEffect(() => {
@@ -305,21 +312,64 @@ export const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!mapInstanceRef.current || !linesLayerRef.current) return;
     linesLayerRef.current.clearLayers();
-    if (!showRoutes) return;
+    if (!showRoutes || !casualtyRouteActive || !routingOptimized) {
+      if (!casualtyRouteActive || !routingOptimized) focusedRouteRef.current = null;
+      return;
+    }
+    if (!Number.isFinite(incident?.latitude) || !Number.isFinite(incident?.longitude)) return;
 
-    const nearest = nearbyHospitals.find((nearby) => nearby.is_nearest);
+    const nearest = nearbyHospitals.find((nearby) => nearby.is_nearest &&
+      hospitals.some((hospital) => hospital.id === nearby.hospital.id && hospital.is_accepting !== false && hospital.available_beds > 0));
     const geometry = nearest?.route_geometry;
     if (nearest?.route_source === 'OSRM_ROAD_ROUTE' && geometry && geometry.length >= 2) {
       if (geometry.some(({ latitude, longitude }) =>
         !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180
       )) return;
+      const scene = L.latLng(incident!.latitude!, incident!.longitude!);
+      const start = geometry[0];
+      const end = geometry[geometry.length - 1];
+      if (scene.distanceTo([start.latitude, start.longitude]) > 120 ||
+          L.latLng(nearest.hospital.latitude, nearest.hospital.longitude).distanceTo([end.latitude, end.longitude]) > 120) return;
 
       const leafletLatLngs: L.LatLngExpression[] = geometry.map(({ latitude, longitude }) => [latitude, longitude]);
+      const routeKey = `${incident?.id}:${incident?.latitude}:${incident?.longitude}:${nearest.hospital.id}:${geometry.length}`;
+      if (focusedRouteRef.current !== routeKey) {
+        const routeMap = mapInstanceRef.current;
+        const routeBounds = L.latLngBounds(leafletLatLngs);
+        routeBounds.extend([incident!.latitude!, incident!.longitude!]);
+        routeMap.invalidateSize({ pan: false });
+        routeMap.fitBounds(routeBounds, { paddingTopLeft: [120, 100], paddingBottomRight: [100, 160], maxZoom: 15, animate: false });
+        focusedRouteRef.current = routeKey;
+      }
+      const routeOutline = L.polyline(leafletLatLngs, {
+        pane: 'casualtyRoutePane',
+        color: '#f8fafc',
+        weight: 11,
+        opacity: 0.9,
+        interactive: false,
+      });
+      const casualtyEndpoint = L.circleMarker(leafletLatLngs[0] as L.LatLngExpression, {
+        pane: 'casualtyRoutePane',
+        radius: 9,
+        color: '#fff',
+        weight: 3,
+        fillColor: '#f43f5e',
+        fillOpacity: 1,
+      }).bindTooltip('MAJOR CASUALTY REGION', { direction: 'top', className: 'bg-slate-950 text-white border border-rose-500 rounded px-2 py-1' });
+      const hospitalEndpoint = L.circleMarker(leafletLatLngs[leafletLatLngs.length - 1] as L.LatLngExpression, {
+        pane: 'casualtyRoutePane',
+        radius: 8,
+        color: '#fff',
+        weight: 3,
+        fillColor: nearest.hospital.current_load >= 0.65 ? '#facc15' : '#10b981',
+        fillOpacity: 1,
+      }).bindTooltip(`NEAREST AVAILABLE: ${nearest.hospital.name}`, { direction: 'top', className: 'bg-slate-950 text-white border border-emerald-500 rounded px-2 py-1' });
       const polyline = L.polyline(leafletLatLngs, {
-        color: '#a78bfa',
-        weight: 5,
-        opacity: 0.95,
+        pane: 'casualtyRoutePane',
+        color: '#7c3aed',
+        weight: 6,
+        opacity: 1,
         className: 'osrm-road-route',
       });
 
@@ -332,11 +382,19 @@ export const MapView: React.FC<MapViewProps> = ({
         { sticky: true, className: 'bg-slate-950 text-white border border-slate-800 rounded p-1' }
       );
 
+      routeOutline.addTo(linesLayerRef.current!);
       polyline.addTo(linesLayerRef.current!);
+      casualtyEndpoint.addTo(linesLayerRef.current!);
+      hospitalEndpoint.addTo(linesLayerRef.current!);
+      polyline.bringToFront();
+      casualtyEndpoint.bringToFront();
+      hospitalEndpoint.bringToFront();
     }
-  }, [nearbyHospitals, showRoutes]);
+  }, [nearbyHospitals, hospitals, showRoutes, casualtyRouteActive, routingOptimized, incident?.id, incident?.latitude, incident?.longitude]);
 
-  const nearestRouteSource = nearbyHospitals.find((nearby) => nearby.is_nearest)?.route_source;
+  const nearestHospital = nearbyHospitals.find((nearby) => nearby.is_nearest &&
+    hospitals.some((hospital) => hospital.id === nearby.hospital.id && hospital.is_accepting !== false && hospital.available_beds > 0));
+  const nearestRouteSource = nearestHospital?.route_source;
 
   return (
     <div className="relative w-full h-full min-h-[480px] rounded-xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
@@ -344,7 +402,7 @@ export const MapView: React.FC<MapViewProps> = ({
       <div ref={mapContainerRef} className="w-full h-full z-0 min-h-[480px]" />
 
       {/* Layer Toggles Toolbar Top-Right */}
-      <div className="absolute top-3 right-3 z-10 bg-slate-950/90 border border-slate-800 backdrop-blur-md px-2.5 py-1.5 rounded-lg font-mono text-[10px] text-slate-300 shadow-xl flex items-center gap-2">
+      <div className="absolute top-3 right-3 left-14 sm:left-auto z-10 bg-slate-950/90 border border-slate-800 backdrop-blur-md px-2.5 py-1.5 rounded-lg font-mono text-xs text-slate-300 shadow-xl flex flex-wrap items-center gap-2">
         {(!Number.isFinite(incident?.latitude) || !Number.isFinite(incident?.longitude)) && (
           <span className="text-amber-300">Incident location unavailable</span>
         )}
@@ -359,7 +417,7 @@ export const MapView: React.FC<MapViewProps> = ({
           onClick={() => setShowPatients(!showPatients)}
           className={`px-1.5 py-0.5 rounded transition-all ${showPatients ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'text-slate-500'}`}
         >
-          Casualties
+          Scene cases
         </button>
         <button
           onClick={() => setShowAmbulances(!showAmbulances)}
@@ -369,6 +427,8 @@ export const MapView: React.FC<MapViewProps> = ({
         </button>
         <button
           onClick={() => setShowRoutes(!showRoutes)}
+          disabled={!routingOptimized}
+          title={routingOptimized ? 'Toggle optimized hospital route' : 'Optimize casualty evacuation to show the hospital route'}
           className={`px-1.5 py-0.5 rounded transition-all ${showRoutes ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-500'}`}
         >
           Routes
@@ -382,37 +442,36 @@ export const MapView: React.FC<MapViewProps> = ({
       </div>
 
       {/* Tactical Map Overlay Legend */}
-      <div className="absolute bottom-3 left-3 z-10 bg-slate-950/90 border border-slate-800 backdrop-blur-md px-3 py-2 rounded-lg font-mono text-[10px] text-slate-300 shadow-xl space-y-1">
-        <div className="flex items-center justify-between gap-3 font-bold text-white tracking-wider mb-1">
-          <span>OPERATIONAL MAP TELEMETRY</span>
-          <span className="text-[9px] text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">
-            ERNAKULAM TRAUMA GRID
-          </span>
+      <div className="absolute bottom-3 left-3 right-3 z-10 bg-slate-950/95 border border-slate-700 backdrop-blur-md px-3 py-2 rounded-lg text-xs text-slate-300 shadow-xl space-y-2" data-testid="incident-route-summary">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="font-bold text-white">
+              {!casualtyRouteActive ? 'Major casualty incident map' : !routingOptimized ? 'Accident scene · Ready for evacuation optimization' : nearestHospital ? `Accident scene → ${nearestHospital.hospital.name}` : 'No receiving hospital available'}
+            </div>
+            <div className="mt-1 text-slate-400">
+              {!casualtyRouteActive ? 'Trigger the incident to show scene cases, then optimize evacuation to display the hospital route.'
+                : !routingOptimized ? 'Optimize casualty evacuation to display the hospital route.'
+                : nearestRouteSource === 'OSRM_ROAD_ROUTE' ? `Nearest accepting hospital · ${nearestHospital?.route_distance_km?.toFixed(1)} km · ${nearestHospital?.route_eta_minutes?.toFixed(0)} min driving${showRoutes ? '' : ' · Route hidden: enable Routes above'}`
+                : nearestHospital ? 'Road route unavailable. Retry when the routing service is reachable.'
+                : 'All hospitals are full or not accepting casualties.'}
+            </div>
+          </div>
+          {casualtyRouteActive && routingOptimized && nearestHospital && <button type="button" className="px-3 py-1.5 rounded border border-violet-500/60 text-violet-200 hover:bg-violet-500/20" onClick={() => {
+            setShowRoutes(true);
+            const map = mapInstanceRef.current;
+            const geometry = nearestHospital.route_geometry;
+            if (map && geometry?.length) {
+              map.fitBounds(L.latLngBounds(geometry.map((point) => [point.latitude, point.longitude] as L.LatLngTuple)), { paddingTopLeft: [120, 100], paddingBottomRight: [100, 160], maxZoom: 15, animate: false });
+            } else if (map && Number.isFinite(incident?.latitude) && Number.isFinite(incident?.longitude)) {
+              map.setView([incident!.latitude!, incident!.longitude!], 15);
+            }
+          }}>Focus route</button>}
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded bg-emerald-500" /> Normal (&lt;65%)
-          <span className="w-2.5 h-2.5 rounded bg-amber-500 ml-1" /> Warning (65-85%)
-          <span className="w-2.5 h-2.5 rounded bg-rose-500 ml-1" /> Saturated (&gt;85%)
-        </div>
-
-        <div className="flex items-center gap-2 text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-rose-500" /> Red (Immediate)
-          <span className="w-2 h-2 rounded-full bg-amber-400 ml-1" /> Yellow (Delayed)
-          <span className="w-2 h-2 rounded-full bg-emerald-400 ml-1" /> Green (Minor)
-          <span className="ml-2">🚑 Available / En Route</span>
-          <span className="text-rose-400 ml-1">⛔ Road Closure</span>
-        </div>
-
-        <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-slate-800/80 pt-1 text-[9px]">
-          <span className={nearestRouteSource === 'OSRM_ROAD_ROUTE' ? 'text-emerald-300' : 'text-amber-300'}>
-            CASUALTY REGION → NEAREST HOSPITAL: {nearestRouteSource === 'OSRM_ROAD_ROUTE' ? 'OSRM ROAD ROUTE' : nearestRouteSource ?? 'ROUTE UNAVAILABLE'}
-          </span>
-        </div>
-
-        <div className="pt-1.5 mt-1 border-t border-slate-800/80 text-[9px] text-slate-400 flex items-center justify-between">
-          <span>Capacity & Traffic: <strong className="text-amber-400 font-medium">SIMULATED DATA</strong></span>
-          <span className="text-slate-500">Positions from backend records</span>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-800 pt-2 text-[11px]">
+          <span className="flex items-center gap-1.5"><i className="w-3 h-3 rounded bg-emerald-500" /> Vacancy (&lt;65% occupied)</span>
+          <span className="flex items-center gap-1.5"><i className="w-3 h-3 rounded bg-yellow-400" /> Partially filled (≥65%)</span>
+          <span className="flex items-center gap-1.5"><i className="w-3 h-3 rounded bg-rose-500" /> Full / not accepting</span>
+          <span className="text-slate-500">Demo capacity · Scene badges show grouped cases</span>
         </div>
       </div>
     </div>

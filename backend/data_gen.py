@@ -358,7 +358,8 @@ def generate_patient(
     """
     Generates a realistic field casualty in Ernakulam/Kochi with START triage acuity,
     injury mechanisms, vital signs, and specialist/resource requirements.
-    Coordinates are distributed naturally across the region within [9.85, 10.15] lat and [76.15, 76.45] lon.
+    Casualties share the reported incident location until an individual field
+    position is recorded. They are not unrelated cases scattered across the city.
     """
     # Realistic START Triage Acuity distribution:
     # ~20% RED (Immediate), ~35% YELLOW (Delayed), ~35% GREEN (Minor), ~10% BLACK (Expectant)
@@ -414,18 +415,7 @@ def generate_patient(
         mechanism = "blast_primary"
         vitals = {"rr": 0, "hr": 0, "sbp": 0, "spo2": 0, "gcs": 3}
 
-    # Spatial distribution across Ernakulam simulation boundary:
-    # 70% clustered around incident epicenter (sigma ~ 0.02 deg ~ 2km), 30% wider Ernakulam dispersion
-    if random.random() < 0.70:
-        lat = incident_lat + random.gauss(0, 0.02)
-        lon = incident_lon + random.gauss(0, 0.02)
-    else:
-        lat = random.uniform(9.88, 10.12)
-        lon = random.uniform(76.18, 76.42)
-
-    # Strictly clamp within Ernakulam simulation boundary: [9.85, 10.15] x [76.15, 76.45]
-    lat = max(9.8500, min(10.1500, lat))
-    lon = max(76.1500, min(76.4500, lon))
+    lat, lon = incident_lat, incident_lon
 
     age = random.choice([
         random.randint(4, 12),   # Pediatric

@@ -7,6 +7,7 @@ only in the helpers below.
 
 import math
 import os
+from time import monotonic
 from dataclasses import dataclass
 from typing import Any
 
@@ -27,6 +28,11 @@ class RoadRouteResult:
     distance_meters: float | None = None
     duration_seconds: float | None = None
     error: str | None = None
+
+
+# Reuse only successful live lookups briefly, so capacity refreshes do not make
+# an already displayed road route disappear during a transient OSRM timeout.
+_road_route_cache: dict[tuple[float, float, float, float], tuple[float, RoadRouteResult]] = {}
 
 
 def apply_road_route_result(
@@ -161,6 +167,10 @@ async def get_osrm_road_route(
         return RoadRouteResult(RouteSource.ROUTE_UNAVAILABLE, error="Coordinates are outside the Ernakulam routing region")
 
     owns_client = client is None
+    cache_key = (origin.latitude, origin.longitude, destination.latitude, destination.longitude)
+    cached = _road_route_cache.get(cache_key) if owns_client else None
+    if cached and monotonic() - cached[0] < 60:
+        return cached[1]
     route_client = client or httpx.AsyncClient(timeout=OSRM_TIMEOUT_SECONDS)
     url = f"{OSRM_BASE_URL}/route/v1/driving/{to_osrm_coordinate(origin)};{to_osrm_coordinate(destination)}"
     try:
@@ -169,7 +179,12 @@ async def get_osrm_road_route(
             params={"overview": "full", "geometries": "geojson", "steps": "false"},
         )
         response.raise_for_status()
-        return _parse_success_response(response.json(), origin, destination)
+        result = _parse_success_response(response.json(), origin, destination)
+        if owns_client and result.source == RouteSource.OSRM_ROAD_ROUTE:
+            if len(_road_route_cache) >= 256:
+                _road_route_cache.pop(min(_road_route_cache, key=lambda key: _road_route_cache[key][0]))
+            _road_route_cache[cache_key] = (monotonic(), result)
+        return result
     except (httpx.TimeoutException, httpx.RequestError) as error:
         return RoadRouteResult(RouteSource.APPROXIMATE_NO_ROAD_GEOMETRY, error=f"OSRM unavailable: {type(error).__name__}")
     except (httpx.HTTPStatusError, ValueError):

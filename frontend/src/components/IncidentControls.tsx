@@ -61,7 +61,7 @@ export const IncidentControls: React.FC<IncidentControlsProps> = ({
 
           <button
             onClick={() => onTriggerSurge(casualtyCount)}
-            disabled={isTriggering}
+            disabled={isTriggering || isOptimizing}
             className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-600 hover:to-amber-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-rose-950/50 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             <Siren className={`w-4 h-4 ${isTriggering ? 'animate-bounce' : ''}`} />
@@ -73,7 +73,7 @@ export const IncidentControls: React.FC<IncidentControlsProps> = ({
         <div className="flex flex-col justify-end">
           <button
             onClick={onOptimize}
-            disabled={isOptimizing || waitingCount === 0}
+            disabled={isOptimizing || isTriggering || waitingCount === 0}
             className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-bold tracking-wide shadow-lg transition-all active:scale-[0.98] ${
               waitingCount > 0
                 ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white shadow-indigo-950/60 ring-2 ring-indigo-400/50 animate-pulse'
@@ -82,11 +82,11 @@ export const IncidentControls: React.FC<IncidentControlsProps> = ({
           >
             <Zap className={`w-4 h-4 ${isOptimizing ? 'animate-spin' : ''}`} />
             <span>
-              OPTIMIZE PATIENT ROUTING {waitingCount > 0 ? `(${waitingCount})` : ''}
+              OPTIMIZE CASUALTY EVACUATION {waitingCount > 0 ? `(${waitingCount})` : ''}
             </span>
           </button>
           <span className="text-[9px] text-slate-400 mt-1 text-center">
-            Hungarian Bipartite Solver (Min-Cost Max-Flow)
+            Allocate scene casualties to receiving hospitals
           </span>
         </div>
       </div>

@@ -441,7 +441,15 @@ async def get_nearby_hospitals(incident_id: str, request: Request):
 
     nearby.sort(key=lambda item: item["distance_km"])
     if nearby:
-        nearest = nearby[0]
+        nearest = next((
+            item for item in nearby
+            if item["hospital"].get("is_accepting", True)
+            and item["hospital"].get("available_beds", 0) > 0
+        ), None)
+        if nearest is None:
+            nearby[0].update({"is_nearest": True, "route_source": RouteSource.ROUTE_UNAVAILABLE.value})
+            return nearby
+
         hospital = nearest["hospital"]
         route = await get_osrm_road_route(
             RoutePoint(latitude=incident_lat, longitude=incident_lon),

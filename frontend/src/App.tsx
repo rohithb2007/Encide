@@ -123,6 +123,8 @@ export const App: React.FC = () => {
 
   // Action Loading States
   const [isTriggering, setIsTriggering] = useState<boolean>(false);
+  const [casualtyRouteActive, setCasualtyRouteActive] = useState(false);
+  const [routingOptimized, setRoutingOptimized] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [isCheckingReplanning, setIsCheckingReplanning] = useState<boolean>(false);
@@ -200,6 +202,7 @@ export const App: React.FC = () => {
         ]);
         setHospitals(hospList);
         setPatients(patList);
+        setCasualtyRouteActive(patList.length > 0);
         setAmbulances(ambList);
         if (incList.length > 0) setIncident(incList[0]);
         setReports(repList);
@@ -231,7 +234,10 @@ export const App: React.FC = () => {
         ? data.hospitals
         : mergeById(current, data.hospitals));
     }
-    if (data.patients && currentUserRole === 'COORDINATOR') setPatients(data.patients);
+    if (data.patients && currentUserRole === 'COORDINATOR') {
+      setPatients(data.patients);
+      setCasualtyRouteActive(data.patients.length > 0);
+    }
     if (data.assignments && currentUserRole === 'COORDINATOR') setAssignments(data.assignments);
     if (data.ambulances) {
       setAmbulances((current) => currentUserRole === 'COORDINATOR'
@@ -246,9 +252,11 @@ export const App: React.FC = () => {
   }, [currentUserRole, refreshAuxiliaryData]);
 
   const handleSurgeTriggered = useCallback((data: any) => {
+    setRoutingOptimized(false);
     if (data.patients) setPatients(data.patients);
     if (data.hospitals) setHospitals(data.hospitals);
     if (data.incident) setIncident(data.incident);
+    setCasualtyRouteActive(true);
     refreshAuxiliaryData();
   }, [refreshAuxiliaryData]);
 
@@ -290,12 +298,14 @@ export const App: React.FC = () => {
   }, [refreshAuxiliaryData]);
 
   const handleSimulationReset = useCallback((data: any) => {
+    setRoutingOptimized(false);
     if (data.hospitals) setHospitals(data.hospitals);
     if (data.ambulances) setAmbulances(data.ambulances);
     if (data.reports) setReports(data.reports);
     if (data.advisories) setAdvisories(data.advisories);
     if (data.alerts) setAuthorityAlerts(data.alerts);
     setPatients([]);
+    setCasualtyRouteActive(false);
     setAssignments([]);
     setRecommendations([]);
     setReplanningResult(null);
@@ -319,9 +329,11 @@ export const App: React.FC = () => {
   // Action: Trigger Surge
   const handleTriggerSurge = async (count: number) => {
     setIsTriggering(true);
+    setRoutingOptimized(false);
     try {
       const newPatients = await triggerSurge(count);
       setPatients(newPatients);
+      setCasualtyRouteActive(true);
       await refreshAuxiliaryData();
     } catch (err) {
       console.error('Failed to trigger surge:', err);
@@ -333,6 +345,7 @@ export const App: React.FC = () => {
   // Action: Optimize Patient Routing (Generates Feasible Recommendations)
   const handleOptimizeRouting = async () => {
     setIsOptimizing(true);
+    setRoutingOptimized(false);
     try {
       const res = await generateRecommendations();
       setRecommendations(res.proposals);
@@ -345,6 +358,7 @@ export const App: React.FC = () => {
       setPatients(patList);
       setAmbulances(ambList);
       await refreshAuxiliaryData();
+      setRoutingOptimized(res.proposals.length > 0);
     } catch (err) {
       console.error('Failed to optimize routing:', err);
     } finally {
@@ -437,8 +451,9 @@ export const App: React.FC = () => {
   };
 
   // Scenario Callback Handler
-  const handleScenarioStepCompleted = async (_step: number) => {
+  const handleScenarioStepCompleted = async (step: number) => {
     await loadInitialData();
+    if (step === 5) setRoutingOptimized(true);
   };
 
   const waitingCount = patients.filter((p) => p.status === 'WAITING').length;
@@ -567,16 +582,23 @@ export const App: React.FC = () => {
 
           {/* Coordinator Approval Queue Bar (Visible when proposals exist) */}
           {recommendations.length > 0 && currentUserRole === 'COORDINATOR' && (
-            <CoordinatorApprovalPanel
-              proposals={recommendations}
-              patients={patients}
-              hospitals={hospitals}
-              ambulances={ambulances}
-              onApproved={async () => {
-                setRecommendations([]);
-                await loadInitialData();
-              }}
-            />
+            <details className="rounded-xl border border-slate-700 bg-slate-900/90 p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-cyan-200">
+                Evacuation plan: {recommendations.length} casualties · Review hospital allocations
+              </summary>
+              <div className="mt-3">
+                <CoordinatorApprovalPanel
+                  proposals={recommendations}
+                  patients={patients}
+                  hospitals={hospitals}
+                  ambulances={ambulances}
+                  onApproved={async () => {
+                    setRecommendations([]);
+                    await loadInitialData();
+                  }}
+                />
+              </div>
+            </details>
           )}
 
           {/* Main Command Center Layout */}
@@ -599,6 +621,8 @@ export const App: React.FC = () => {
                   hospitals={hospitals}
                   patients={patients}
                   nearbyHospitals={nearbyHospitals}
+                  casualtyRouteActive={casualtyRouteActive}
+                  routingOptimized={routingOptimized}
                   ambulances={ambulances}
                   advisories={advisories}
                   incident={incident}
@@ -677,7 +701,7 @@ export const App: React.FC = () => {
                     2. Switch between roles (<strong className="text-rose-400">Coordinator</strong>, <strong className="text-cyan-400">Hospital</strong>, <strong className="text-amber-400">Ambulance</strong>, <strong className="text-emerald-400">Reporter</strong>, <strong className="text-indigo-400">Driver</strong>) to test role-specific portals.
                   </p>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    3. Click <strong className="text-cyan-400">OPTIMIZE PATIENT ROUTING</strong> to generate feasible allocation proposals with ambulance pairing and coordinator approvals.
+                    3. Click <strong className="text-cyan-400">OPTIMIZE CASUALTY EVACUATION</strong> to allocate scene casualties to receiving hospitals with ambulance pairing and coordinator approvals.
                   </p>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
                     4. Click any <strong className="text-white">Hospital marker</strong> or <strong className="text-amber-400">Ambulance</strong> to inspect real-time bed, ICU, surgical staff, and transport missions.
